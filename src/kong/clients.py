@@ -9,6 +9,15 @@ class RestClient:
         self._requests = requests_module
         self.url = url
 
+    def post(self, url=None, data={}):
+        if url is None:
+            url = self.url
+        response = self._requests.post(url, data=data)
+
+        # TODO: handle response codes
+
+        return response
+
 
 class ApiAdminClient(RestClient):
 
@@ -16,12 +25,21 @@ class ApiAdminClient(RestClient):
 
         if isinstance(api_name_or_data, ApiData):
             api_data = api_name_or_data
-            self._requests.post(self.url, data=dict(api_data))
-            return api_data
+
+            return self.__send_create(api_data)
         elif upstream_url is None:
             raise ValueError("must provide a upstream_url")
 
         api_name = api_name_or_data
         api_data = ApiData(api_name, upstream_url, **kwargs)
-        self._requests.post(self.url, data=dict(api_data))
-        return api_data
+
+        return self.__send_create(api_data)
+
+    def __send_create(self, api_data):
+        response = self.post(self.url + 'apis/', data=dict(api_data))
+
+        return_value = {**api_data, **response['data']}
+        if return_value != {**response['data'], **api_data}:
+            raise ConnectionError('unexpected server response')
+
+        return return_value

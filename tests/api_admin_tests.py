@@ -10,6 +10,8 @@ from src.kong.data_structures import ApiData
 
 class ApiAdminClientTest(unittest.TestCase):
 
+
+
     def setUp(self):
         self.faker = Faker()
         self.faker.add_provider(ApiDataProvider)
@@ -19,8 +21,10 @@ class ApiAdminClientTest(unittest.TestCase):
 
         self.requests_mock = MagicMock()
         self.requests_mock.post = MagicMock()
+        self.requests_mock.post.return_value = {'data': {'id': self.faker.kong_id()}}
 
         self.kong_admin_url = self.faker.url()
+        self.apis_endpoint = self.kong_admin_url + 'apis/'
 
         self.api_admin_client = ApiAdminClient(self.kong_admin_url, requests_module=self.requests_mock)
 
@@ -47,7 +51,8 @@ class ApiAdminClientTest(unittest.TestCase):
         api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
-        self.requests_mock.post.assert_called_once_with(self.kong_admin_url, data=dict(api_data))
+        expected_api_data = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.requests_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(expected_api_data))
 
     def test_api_admin_create_using_api_data(self):
         """
@@ -55,11 +60,13 @@ class ApiAdminClientTest(unittest.TestCase):
             as normal create
         """
         # Setup
-        api_data2 = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        orig_data = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        api_data = self.api_admin_client.create(api_data2)
+        api_data = self.api_admin_client.create(orig_data)
 
         # Verify
-        self.assertEqual(api_data, api_data2)
-        self.requests_mock.post.assert_called_once_with(self.kong_admin_url, data=dict(api_data))
+        expected_data = {**orig_data, **{'id': api_data['id']}}
+
+        self.assertEqual(api_data, expected_data)
+        self.requests_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(orig_data))
