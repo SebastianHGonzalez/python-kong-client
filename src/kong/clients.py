@@ -1,3 +1,6 @@
+import requests
+
+
 class ApiData(dict):
 
     def __init__(self, api_name, upstream_url, api_uris):
@@ -6,7 +9,16 @@ class ApiData(dict):
         self['uris'] = api_uris
 
 
-class ApiAdminClient:
+class RestClient:
+
+    def __init__(self, url, requests_module=requests):
+        self._requests = requests_module
+        self.url = url
+
+
+class ApiAdminClient(RestClient):
 
     def create(self, api_name, upstream_url, api_uris, **kwargs):
-        return ApiData(api_name, upstream_url, api_uris)
+        api_data = ApiData(api_name, upstream_url, api_uris)
+        self._requests.post(self.url, data=dict(api_data))
+        return api_data

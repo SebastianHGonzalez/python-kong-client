@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import MagicMock
 from faker import Faker
 
 from src.kong.providers import ApiDataProvider
@@ -15,12 +16,17 @@ class ApiAdminClientTest(unittest.TestCase):
         self.api_upstream_url = self.faker.url()
         self.api_uris = self.faker.api_uris()
 
-        self.api_admin_client = ApiAdminClient()
+        self.requests_mock = MagicMock()
+        self.requests_mock.post = MagicMock()
+
+        self.kong_admin_url = self.faker.url()
+
+        self.api_admin_client = ApiAdminClient(self.kong_admin_url, requests_module=self.requests_mock)
 
     def test_api_admin_create(self):
         """
-            Test: ApiAdminClient.crete() creates a ApiData instance with
-                api's data
+            Test: ApiAdminClient.create() creates a api data dictionary
+            instance with given api's data.
         """
 
         # Exercise
@@ -31,6 +37,13 @@ class ApiAdminClientTest(unittest.TestCase):
         self.assertEqual(api_data['upstream_url'], self.api_upstream_url)
         self.assertEqual(api_data['uris'], self.api_uris)
 
+    def test_api_admin_create_triggers_http_request_to_kong_server(self):
+        """
+            Test: ApiAdminClient.create() triggers an http request
+            to kong server to create the api in the server.
+        """
+        # Exercise
+        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, self.api_uris)
 
-if __name__ == '__main__':
-    unittest.main()
+        # Verifiy
+        self.requests_mock.post.assert_called_once_with(self.kong_admin_url, data=dict(api_data))
