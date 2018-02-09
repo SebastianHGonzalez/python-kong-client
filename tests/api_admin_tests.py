@@ -48,7 +48,7 @@ class ApiAdminClientTest(unittest.TestCase):
             to kong server to create the api in the server.
         """
         # Exercise
-        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         expected_api_data = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
