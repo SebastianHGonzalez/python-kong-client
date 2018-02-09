@@ -5,6 +5,7 @@ from faker import Faker
 from src.kong.providers import ApiDataProvider
 
 from src.kong.clients import ApiAdminClient
+from src.kong.data_structures import ApiData
 
 
 class ApiAdminClientTest(unittest.TestCase):
@@ -30,7 +31,7 @@ class ApiAdminClientTest(unittest.TestCase):
         """
 
         # Exercise
-        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, self.api_uris)
+        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         self.assertEqual(api_data['name'], self.api_name)
@@ -43,7 +44,22 @@ class ApiAdminClientTest(unittest.TestCase):
             to kong server to create the api in the server.
         """
         # Exercise
-        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, self.api_uris)
+        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
-        # Verifiy
+        # Verify
+        self.requests_mock.post.assert_called_once_with(self.kong_admin_url, data=dict(api_data))
+
+    def test_api_admin_create_using_api_data(self):
+        """
+            Test: passing a ApiData instance results in the same behaviour
+            as normal create
+        """
+        # Setup
+        api_data2 = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
+
+        # Exercise
+        api_data = self.api_admin_client.create(api_data2)
+
+        # Verify
+        self.assertEqual(api_data, api_data2)
         self.requests_mock.post.assert_called_once_with(self.kong_admin_url, data=dict(api_data))

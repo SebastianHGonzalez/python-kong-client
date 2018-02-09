@@ -1,12 +1,6 @@
 import requests
 
-
-class ApiData(dict):
-
-    def __init__(self, api_name, upstream_url, api_uris):
-        self['name'] = api_name
-        self['upstream_url'] = upstream_url
-        self['uris'] = api_uris
+from .data_structures import ApiData
 
 
 class RestClient:
@@ -18,7 +12,16 @@ class RestClient:
 
 class ApiAdminClient(RestClient):
 
-    def create(self, api_name, upstream_url, api_uris, **kwargs):
-        api_data = ApiData(api_name, upstream_url, api_uris)
+    def create(self, api_name_or_data, upstream_url=None, **kwargs):
+
+        if isinstance(api_name_or_data, ApiData):
+            api_data = api_name_or_data
+            self._requests.post(self.url, data=dict(api_data))
+            return api_data
+        elif upstream_url is None:
+            raise ValueError("must provide a upstream_url")
+
+        api_name = api_name_or_data
+        api_data = ApiData(api_name, upstream_url, **kwargs)
         self._requests.post(self.url, data=dict(api_data))
         return api_data
