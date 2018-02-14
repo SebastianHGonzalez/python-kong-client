@@ -17,6 +17,10 @@ class ApiData(dict):
         if not self.satisfy_semi_optional_parameters(**kwargs):
             raise ValueError('uris, methods or hosts must be provided to create')
 
+        for k in kwargs:
+            if k not in self.allowed_parameters():
+                raise ValueError('invalid parameter: %s' % k)
+
         self['name'] = api_name
         self['upstream_url'] = upstream_url
 

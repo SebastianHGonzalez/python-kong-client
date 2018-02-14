@@ -10,8 +10,6 @@ from src.kong.data_structures import ApiData
 
 class ApiAdminClientTest(unittest.TestCase):
 
-
-
     def setUp(self):
         self.faker = Faker()
         self.faker.add_provider(ApiDataProvider)
