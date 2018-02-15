@@ -29,8 +29,8 @@ class ApiDataTests(unittest.TestCase):
         upstream_read_timeout = self.faker.random_int()
 
         # Exercise
-        self.api_data = ApiData(self.api_name,
-                                self.api_upstream_url,
+        self.api_data = ApiData(name=self.api_name,
+                                upstream_url=self.api_upstream_url,
                                 uris=self.api_uris,
                                 hosts=hosts,
                                 methods=methods,
@@ -51,7 +51,7 @@ class ApiDataTests(unittest.TestCase):
     def test_create_api_data_wo_uris_method_or_hosts_raises_exception(self):
         self.assertRaisesRegex(ValueError,
                                r'provided',
-                               lambda: ApiData(api_name=self.api_name,
+                               lambda: ApiData(name=self.api_name,
                                                upstream_url=self.api_upstream_url))
 
     def test_create_api_data_w_invalid_fields_raises_exception(self):
@@ -61,7 +61,7 @@ class ApiDataTests(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(ValueError,
                                r'invalid_field',
-                               lambda: ApiData(api_name=self.api_name,
+                               lambda: ApiData(name=self.api_name,
                                                upstream_url=self.api_upstream_url,
                                                uris=self.api_uris,
                                                invalid_field=invalid_value))
