@@ -35,25 +35,26 @@ class ApiAdminClient(RestClient):
         if isinstance(api_name_or_data, ApiData):
             api_data = api_name_or_data
 
-            return self.__send_create(api_data)
         elif upstream_url is None:
             raise ValueError("must provide a upstream_url")
 
-        api_name = api_name_or_data
-        api_data = ApiData(name=api_name, upstream_url=upstream_url, **kwargs)
+        elif isinstance(api_name_or_data, str):
+            api_name = api_name_or_data
+            api_data = ApiData(name=api_name, upstream_url=upstream_url, **kwargs)
 
         return self.__send_create(api_data)
 
     def __send_create(self, api_data):
         response = self.post(self.url + 'apis/', data=dict(api_data))
-        return ApiData(response['data'])
+        data = response['data']
+        return ApiData(**data)
 
     def delete_api(self, data):
         self.__send_delete(data)
 
     def __send_delete(self, data):
         if isinstance(data, ApiData):
-            name_or_id = data.name
+            name_or_id = data['name']
         else:
             name_or_id = data
 

@@ -45,7 +45,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         self.requests_mock = MagicMock()
         self.requests_mock.post = MagicMock()
-        self.requests_mock.post.return_value = {'data': {**self.api_data, **{'id': self.faker.kong_id()}}}
+        self.requests_mock.post.return_value = {'data': {**self.api_data, **{'id': self.api_kong_id}}}
 
         self.kong_admin_url = self.faker.url()
         self.apis_endpoint = self.kong_admin_url + 'apis/'
@@ -75,8 +75,11 @@ class ApiAdminClientTest(unittest.TestCase):
         self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
-        expected_api_data = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
-        self.requests_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(expected_api_data))
+        expected_api_data = ApiData(name=self.api_name,
+                                    upstream_url=self.api_upstream_url,
+                                    uris=self.api_uris)
+        self.requests_mock.post.assert_called_once_with(self.apis_endpoint,
+                                                        data=dict(expected_api_data))
 
     def test_api_admin_create_using_api_data(self):
         """
@@ -84,15 +87,12 @@ class ApiAdminClientTest(unittest.TestCase):
             as normal create
         """
         # Setup
-        orig_data = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        orig_data = ApiData(name=self.api_name, upstream_url=self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
         api_data = self.api_admin_client.create_api(orig_data)
 
         # Verify
-        expected_data = {**orig_data, **{'id': api_data['id']}}
-
-        self.assertEqual(api_data, expected_data)
         self.requests_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(orig_data))
 
     def test_api_admin_delete_by_name(self):

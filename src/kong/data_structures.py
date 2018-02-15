@@ -19,7 +19,7 @@ class ApiData(dict):
         return 'name' in kwargs \
                and 'upstream_url' in kwargs
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         if not self.satisfy_obligatory_parameters(**kwargs):
             raise ValueError('name and upstream_url must be provided to create')
 
