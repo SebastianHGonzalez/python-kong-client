@@ -1,6 +1,5 @@
 import unittest
 import faker
-from faker.providers.internet.en_US import InternetProvider
 from src.kong.providers import ApiDataProvider
 from src.kong.data_structures import ApiData
 

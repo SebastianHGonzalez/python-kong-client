@@ -25,7 +25,7 @@ class RestClient:
 
         # TODO: handle response codes
 
-        return response.json()
+        #return response.json() # delete returns no response
 
     def patch(self, url=None, data={}):
         if url is None:

@@ -1,3 +1,6 @@
+import re
+
+
 class ApiData(dict):
 
     @staticmethod
@@ -31,3 +34,15 @@ class ApiData(dict):
                 self[k] = v
             else:
                 raise ValueError('invalid parameter: %s' % k)
+
+    def add_uri(self, uri):
+        self['uris'].append(self.__normalize_uri(uri))
+        return ", ".join(self['uris'])
+
+    @staticmethod
+    def __normalize_uri(uri):
+        normalized = uri.strip()
+        if re.match(pattern=r'([/]{1}[\w\d]+)+\/?',
+                    string=uri) is None:
+            raise ValueError("invalid uri: %s" % normalized)
+        return normalized
