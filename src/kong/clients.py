@@ -18,10 +18,19 @@ class RestClient:
 
         return response
 
+    def delete(self, url=None, data={}):
+        if url is None:
+            url = self.url
+        response = self._requests.delete(url, data=data)
+
+        # TODO: handle response codes
+
+        return response
+
 
 class ApiAdminClient(RestClient):
 
-    def create(self, api_name_or_data, upstream_url=None, **kwargs):
+    def create_api(self, api_name_or_data, upstream_url=None, **kwargs):
 
         if isinstance(api_name_or_data, ApiData):
             api_data = api_name_or_data
@@ -31,15 +40,22 @@ class ApiAdminClient(RestClient):
             raise ValueError("must provide a upstream_url")
 
         api_name = api_name_or_data
-        api_data = ApiData(api_name, upstream_url, **kwargs)
+        api_data = ApiData(name=api_name, upstream_url=upstream_url, **kwargs)
 
         return self.__send_create(api_data)
 
     def __send_create(self, api_data):
         response = self.post(self.url + 'apis/', data=dict(api_data))
+        return ApiData(response['data'])
 
-        return_value = {**api_data, **response['data']}
-        if return_value != {**response['data'], **api_data}:
-            raise ConnectionError('unexpected server response')
+    def delete_api(self, data):
+        self.__send_delete(data)
 
-        return return_value
+    def __send_delete(self, data):
+        if isinstance(data, ApiData):
+            name_or_id = data.name
+        else:
+            name_or_id = data
+
+        url = self.url + 'apis/' + name_or_id
+        return self.delete(url)
