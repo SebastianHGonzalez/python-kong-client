@@ -158,3 +158,26 @@ class ApiAdminClientTest(unittest.TestCase):
         expected_data = dict(api_data)
         api_endpoint = self.apis_endpoint + self.api_name
         self.requests_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
+
+    def test_api_admin_list(self):
+        """
+            Test: ApiAdmin.list() returns a generator ApiData instances of all apis in kong server
+        """
+        # Setup
+        amount = self.faker.random_int(1, 50)
+        api_names = []
+
+        for _ in range(amount):
+            api_name = self.faker.api_name()
+            api_names.append(api_name)
+            self.api_admin_client.api_create(api_name,
+                                             self.faker.url(),
+                                             uris=self.faker.api_uris())
+
+        # Exercise
+        actual_amount = 0
+        for _ in self.api_admin_client.api_list():
+            actual_amount += 1
+
+        # Verify
+        self.assertEqual(amount, actual_amount)
