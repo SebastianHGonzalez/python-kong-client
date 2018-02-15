@@ -39,7 +39,7 @@ class RestClient:
 
 class ApiAdminClient(RestClient):
 
-    def create_api(self, api_name_or_data, upstream_url=None, **kwargs):
+    def api_create(self, api_name_or_data, upstream_url=None, **kwargs):
 
         if isinstance(api_name_or_data, ApiData):
             api_data = api_name_or_data
@@ -65,7 +65,7 @@ class ApiAdminClient(RestClient):
                 d[k] = data[k]
         return ApiData(**d)
 
-    def delete_api(self, data):
+    def api_delete(self, data):
         if isinstance(data, ApiData):
             name_or_id = data['name']
         else:
@@ -77,7 +77,7 @@ class ApiAdminClient(RestClient):
         url = self.url + 'apis/' + name_or_id
         return self.delete(url)
 
-    def update_api(self, api_data):
+    def api_update(self, api_data):
         if isinstance(api_data, ApiData):
             data = dict(api_data)
         elif isinstance(api_data, dict):
@@ -90,3 +90,7 @@ class ApiAdminClient(RestClient):
     def __send_update(self, data):
         url = self.url + 'apis/' + data['name']
         return self.patch(url, data)
+
+    def api_list(self):
+        # TODO: return a iterable generator
+        return []

@@ -16,7 +16,7 @@ class ApiDataTests(unittest.TestCase):
 
     def test_create(self):
         # Setup
-        hosts = self.faker.domain_name()
+        hosts = [self.faker.domain_name() for _ in range(self.faker.random_int(0, 10))]
         methods = ["GET", "POST"]
         strip_uri = self.faker.boolean()
         preserve_host = self.faker.boolean()

@@ -18,7 +18,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.api_uris = self.faker.api_uris()
         self.api_kong_id = self.faker.kong_id()
 
-        hosts = self.faker.domain_name()
+        hosts = [self.faker.domain_name() for _ in range(self.faker.random_int(0, 10))]
         methods = ["GET", "POST"]
         strip_uri = self.faker.boolean()
         preserve_host = self.faker.boolean()
@@ -52,7 +52,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.apis_endpoint = self.kong_admin_url + 'apis/'
 
         self.api_admin_client = ApiAdminClient(self.kong_admin_url, requests_module=self.requests_mock)
-    #    self.api_admin_client = ApiAdminClient('http://localhost:8001/')
+        #self.api_admin_client = ApiAdminClient('http://localhost:8001/')
 
     def test_api_admin_create(self):
         """
@@ -61,7 +61,7 @@ class ApiAdminClientTest(unittest.TestCase):
         """
 
         # Exercise
-        api_data = self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        api_data = self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         self.assertEqual(api_data['name'], self.api_name)
@@ -74,7 +74,7 @@ class ApiAdminClientTest(unittest.TestCase):
             to kong server to create the api in the server.
         """
         # Exercise
-        self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         expected_api_data = ApiData(name=self.api_name,
@@ -92,7 +92,7 @@ class ApiAdminClientTest(unittest.TestCase):
         orig_data = ApiData(name=self.api_name, upstream_url=self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        api_data = self.api_admin_client.create_api(orig_data)
+        api_data = self.api_admin_client.api_create(orig_data)
 
         # Verify
         self.requests_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(orig_data))
@@ -102,10 +102,10 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin.delete(api_name) deletes it from kong server
         """
         # Setup
-        self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        self.api_admin_client.delete_api(self.api_name)
+        self.api_admin_client.api_delete(self.api_name)
 
         # Verify
         expected_data = {}
@@ -117,10 +117,10 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin.delete(api_kong_id) deletes it from kong server
         """
         # Setup
-        self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        self.api_admin_client.delete_api(self.api_kong_id)
+        self.api_admin_client.api_delete(self.api_kong_id)
 
         # Verify
         expected_data = {}
@@ -132,10 +132,10 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin.delete(api_data) deletes it from kong server
         """
         # Setup
-        api_data = self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        api_data = self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        self.api_admin_client.delete_api(api_data)
+        self.api_admin_client.api_delete(api_data)
 
         # Verify
         expected_data = {}
@@ -147,12 +147,12 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin.update(api_data) updates it in kong server
         """
         # Setup
-        api_data = self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        api_data = self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
         new_uri = self.faker.api_path()
 
         # Exercise
         api_data.add_uri(new_uri)
-        self.api_admin_client.update_api(api_data)
+        self.api_admin_client.api_update(api_data)
 
         # Verify
         expected_data = dict(api_data)
