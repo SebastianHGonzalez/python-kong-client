@@ -16,10 +16,36 @@ class ApiAdminClientTest(unittest.TestCase):
         self.api_name = self.faker.api_name()
         self.api_upstream_url = self.faker.url()
         self.api_uris = self.faker.api_uris()
+        self.api_kong_id = self.faker.kong_id()
+
+        hosts = self.faker.domain_name()
+        methods = ["GET", "POST"]
+        strip_uri = self.faker.boolean()
+        preserve_host = self.faker.boolean()
+        retries = self.faker.random_int()
+        https_only = self.faker.boolean()
+        http_if_terminated = self.faker.boolean()
+        upstream_connect_timeout = self.faker.random_int()
+        upstream_send_timeout = self.faker.random_int()
+        upstream_read_timeout = self.faker.random_int()
+
+        self.api_data = ApiData(name=self.api_name,
+                                upstream_url=self.api_upstream_url,
+                                uris=self.api_uris,
+                                hosts=hosts,
+                                methods=methods,
+                                strip_uri=strip_uri,
+                                preserve_host=preserve_host,
+                                retries=retries,
+                                https_only=https_only,
+                                http_if_terminated=http_if_terminated,
+                                upstream_connect_timeout=upstream_connect_timeout,
+                                upstream_send_timeout=upstream_send_timeout,
+                                upstream_read_timeout=upstream_read_timeout)
 
         self.requests_mock = MagicMock()
         self.requests_mock.post = MagicMock()
-        self.requests_mock.post.return_value = {'data': {'id': self.faker.kong_id()}}
+        self.requests_mock.post.return_value = {'data': {**self.api_data, **{'id': self.faker.kong_id()}}}
 
         self.kong_admin_url = self.faker.url()
         self.apis_endpoint = self.kong_admin_url + 'apis/'
@@ -33,7 +59,7 @@ class ApiAdminClientTest(unittest.TestCase):
         """
 
         # Exercise
-        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        api_data = self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         self.assertEqual(api_data['name'], self.api_name)
@@ -46,7 +72,7 @@ class ApiAdminClientTest(unittest.TestCase):
             to kong server to create the api in the server.
         """
         # Exercise
-        self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         expected_api_data = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
@@ -61,10 +87,55 @@ class ApiAdminClientTest(unittest.TestCase):
         orig_data = ApiData(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        api_data = self.api_admin_client.create(orig_data)
+        api_data = self.api_admin_client.create_api(orig_data)
 
         # Verify
         expected_data = {**orig_data, **{'id': api_data['id']}}
 
         self.assertEqual(api_data, expected_data)
         self.requests_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(orig_data))
+
+    def test_api_admin_delete_by_name(self):
+        """
+            Test: ApiAdmin.delete(api_name) deletes it from kong server
+        """
+        # Setup
+        self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+
+        # Exercise
+        self.api_admin_client.delete_api(self.api_name)
+
+        # Verify
+        expected_data = {}
+        api_endpoint = self.apis_endpoint + self.api_name
+        self.requests_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+
+    def test_api_admin_delete_by_kong_id(self):
+        """
+            Test: ApiAdmin.delete(api_kong_id) deletes it from kong server
+        """
+        # Setup
+        self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+
+        # Exercise
+        self.api_admin_client.delete_api(self.api_kong_id)
+
+        # Verify
+        expected_data = {}
+        api_endpoint = self.apis_endpoint + self.api_kong_id
+        self.requests_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+
+    def test_api_admin_delete_by_api_data(self):
+        """
+            Test: ApiAdmin.delete(api_data) deletes it from kong server
+        """
+        # Setup
+        api_data = self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+
+        # Exercise
+        self.api_admin_client.delete_api(api_data)
+
+        # Verify
+        expected_data = {}
+        api_endpoint = self.apis_endpoint + self.api_name
+        self.requests_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
