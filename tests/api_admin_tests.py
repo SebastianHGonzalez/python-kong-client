@@ -45,12 +45,14 @@ class ApiAdminClientTest(unittest.TestCase):
 
         self.requests_mock = MagicMock()
         self.requests_mock.post = MagicMock()
-        self.requests_mock.post.return_value = {'data': {**self.api_data, **{'id': self.api_kong_id}}}
+
+        self.requests_mock.post.return_value.json = lambda: {**self.api_data, **{'id': self.api_kong_id}}
 
         self.kong_admin_url = self.faker.url()
         self.apis_endpoint = self.kong_admin_url + 'apis/'
 
         self.api_admin_client = ApiAdminClient(self.kong_admin_url, requests_module=self.requests_mock)
+    #    self.api_admin_client = ApiAdminClient('http://localhost:8001/')
 
     def test_api_admin_create(self):
         """
@@ -139,3 +141,20 @@ class ApiAdminClientTest(unittest.TestCase):
         expected_data = {}
         api_endpoint = self.apis_endpoint + self.api_name
         self.requests_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+
+    def test_api_admin_update(self):
+        """
+            Test: ApiAdmin.update(api_data) updates it in kong server
+        """
+        # Setup
+        api_data = self.api_admin_client.create_api(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        new_uri = self.faker.api_path()
+
+        # Exercise
+        api_data.add_uri(new_uri)
+        self.api_admin_client.update_api(api_data)
+
+        # Verify
+        expected_data = dict(api_data)
+        api_endpoint = self.apis_endpoint + self.api_name
+        self.requests_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
