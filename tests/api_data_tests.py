@@ -1,6 +1,6 @@
 import unittest
 import faker
-
+from faker.providers.internet.en_US import InternetProvider
 from src.kong.providers import ApiDataProvider
 from src.kong.data_structures import ApiData
 
@@ -14,6 +14,39 @@ class ApiDataTests(unittest.TestCase):
         self.api_name = self.faker.api_name()
         self.api_upstream_url = self.faker.url()
         self.api_uris = self.faker.api_uris()
+
+    def test_create(self):
+        # Setup
+        hosts = self.faker.domain_name()
+        methods = ["GET", "POST"]
+        strip_uri = self.faker.boolean()
+        preserve_host = self.faker.boolean()
+        retries = self.faker.random_int()
+        https_only = self.faker.boolean()
+        http_if_terminated = self.faker.boolean()
+        upstream_connect_timeout = self.faker.random_int()
+        upstream_send_timeout = self.faker.random_int()
+        upstream_read_timeout = self.faker.random_int()
+
+        # Exercise
+        self.api_data = ApiData(self.api_name,
+                                self.api_upstream_url,
+                                uris=self.api_uris,
+                                hosts=hosts,
+                                methods=methods,
+                                strip_uri=strip_uri,
+                                preserve_host=preserve_host,
+                                retries=retries,
+                                https_only=https_only,
+                                http_if_terminated=http_if_terminated,
+                                upstream_connect_timeout=upstream_connect_timeout,
+                                upstream_send_timeout=upstream_send_timeout,
+                                upstream_read_timeout=upstream_read_timeout)
+
+        # Verify
+        self.assertEqual(self.api_data['name'], self.api_name)
+        self.assertEqual(self.api_data['upstream_url'], self.api_upstream_url)
+        self.assertEqual(self.api_data['uris'], self.api_uris)
 
     def test_create_api_data_wo_uris_method_or_hosts_raises_exception(self):
         self.assertRaisesRegex(ValueError,
@@ -32,3 +65,4 @@ class ApiDataTests(unittest.TestCase):
                                                upstream_url=self.api_upstream_url,
                                                uris=self.api_uris,
                                                invalid_field=invalid_value))
+
