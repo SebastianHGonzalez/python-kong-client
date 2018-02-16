@@ -33,9 +33,11 @@ class ApiAdminClient(RestClient):
     def __send_create(self, api_data):
         response = self.session.post(self.url + 'apis/', data=dict(api_data))
 
-        # TODO: handle response codes
         if response.status_code == 409:
             raise NameError(response.content)
+
+        if response.status_code != 201:
+            raise ValueError(response.content)
 
         data = response.json()
         return self.__api_data_from_response(data)
@@ -60,7 +62,8 @@ class ApiAdminClient(RestClient):
         url = self.url + 'apis/' + name_or_id
         response = self.session.delete(url)
 
-        # TODO: handle response codes
+        if response.status_code != 204:
+            raise ValueError(response.content)
 
         return response.json()
 
@@ -78,7 +81,14 @@ class ApiAdminClient(RestClient):
         url = self.url + 'apis/' + data['name']
         response = self.session.patch(url, data=data)
 
-        # TODO: handle response codes
+        if response.status_code == 400:
+            raise KeyError(response.content)
+
+        if response.status_code == 404:
+            raise NameError(response.content)
+
+        if response.status_code != 200:
+            raise ValueError(response.content)
 
         return response.json()
 
@@ -96,12 +106,16 @@ class ApiAdminClient(RestClient):
 
         return generator()
 
-    def __send_list(self, size=10, offset=0):
+    def __send_list(self, size=10, offset=None):
         url = self.url + 'apis/'
         response = self.session.get(url, data={'offset': offset,
                                                'size': size})
 
-        # TODO: handle response codes
+        if response.status_code == 400:
+            raise KeyError(response.content)
+
+        if response.status_code != 200:
+            raise ValueError(response.content)
 
         response = response.json()
 
@@ -118,4 +132,4 @@ class ApiAdminClient(RestClient):
         return offset, apis, response['total']
 
     def api_count(self):
-        return self.__send_list()[2]
+        return self.__send_list(0)[2]

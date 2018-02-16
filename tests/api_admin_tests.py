@@ -49,6 +49,11 @@ class ApiAdminClientTest(unittest.TestCase):
 
         self.session_mock.post.return_value.json = lambda: {**self.api_data, **{'id': self.api_kong_id}}
 
+        self.session_mock.get.return_value.status_code = 200
+        self.session_mock.post.return_value.status_code = 201
+        self.session_mock.patch.return_value.status_code = 200
+        self.session_mock.delete.return_value.status_code = 204
+
         self.kong_admin_url = self.faker.url()
         self.apis_endpoint = self.kong_admin_url + 'apis/'
 
@@ -111,7 +116,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         expected_data = {}
         api_endpoint = self.apis_endpoint + self.api_name
-        self.session_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.delete.assert_called_once_with(api_endpoint)
 
     def test_api_admin_delete_by_kong_id(self):
         """
@@ -126,7 +131,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         expected_data = {}
         api_endpoint = self.apis_endpoint + self.api_kong_id
-        self.session_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.delete.assert_called_once_with(api_endpoint)
 
     def test_api_admin_delete_by_api_data(self):
         """
@@ -141,7 +146,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         expected_data = {}
         api_endpoint = self.apis_endpoint + self.api_name
-        self.session_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.delete.assert_called_once_with(api_endpoint)
 
     def test_api_admin_update(self):
         """
@@ -205,3 +210,5 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertEqual(amount, actual_amount)
+
+    # TODO: test un happy paths (bad requests and responses)
