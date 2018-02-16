@@ -9,6 +9,15 @@ class RestClient:
         self._requests = requests_module
         self.url = url
 
+    def get(self, url=None, data={}):
+        if url is None:
+            url = self.url
+        response = self._requests.get(url, data=data)
+
+        # TODO: handle response codes
+
+        return response.json()
+
     def post(self, url=None, data={}):
         if url is None:
             url = self.url
@@ -91,6 +100,34 @@ class ApiAdminClient(RestClient):
         url = self.url + 'apis/' + data['name']
         return self.patch(url, data)
 
-    def api_list(self):
+    def api_list(self, size=10):
         # TODO: return a iterable generator
-        return []
+        def generator():
+            offset = None
+            while True:
+                offset, cached = self.__send_list(offset, size)
+
+                while cached:
+                    yield cached.pop()
+
+                if offset is None:
+                    break
+
+        return generator()
+
+    def __send_list(self, offset=0, size=10):
+        url = self.url + 'apis/'
+        response = self.get(url, data={'offset': offset,
+                                       'size': size})
+
+        if 'data' in response:
+            apis = response['data']
+        else:
+            apis = []
+
+        if 'offset' in response:
+            offset = response['offset']
+        else:
+            offset = None
+
+        return offset, apis

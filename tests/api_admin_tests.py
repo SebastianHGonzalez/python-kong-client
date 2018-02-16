@@ -165,19 +165,19 @@ class ApiAdminClientTest(unittest.TestCase):
         """
         # Setup
         amount = self.faker.random_int(1, 50)
-        api_names = []
+        apis = []
 
         for _ in range(amount):
-            api_name = self.faker.api_name()
-            api_names.append(api_name)
-            self.api_admin_client.api_create(api_name,
-                                             self.faker.url(),
-                                             uris=self.faker.api_uris())
+            api_data = self.api_admin_client.api_create(self.faker.api_name(),
+                                                        self.faker.url(),
+                                                        uris=self.faker.api_uris())
+            apis.append(api_data)
+
+        self.requests_mock.get.return_value.json = lambda: {'total': amount,
+                                                            'data': apis}
 
         # Exercise
-        actual_amount = 0
-        for _ in self.api_admin_client.api_list():
-            actual_amount += 1
+        actual_amount = len(list(self.api_admin_client.api_list()))
 
         # Verify
         self.assertEqual(amount, actual_amount)
