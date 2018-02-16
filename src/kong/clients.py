@@ -13,42 +13,6 @@ class RestClient:
     def session(self):
         return self._session
 
-    def get(self, url=None, data={}):
-        if url is None:
-            url = self.url
-        response = self.session.get(url, data=data)
-
-        # TODO: handle response codes
-
-        return response.json()
-
-    def post(self, url=None, data={}):
-        if url is None:
-            url = self.url
-        response = self.session.post(url, data=data)
-
-        # TODO: handle response codes
-
-        return response.json()
-
-    def delete(self, url=None, data={}):
-        if url is None:
-            url = self.url
-        response = self.session.delete(url, data=data)
-
-        # TODO: handle response codes
-
-        #return response.json() # delete returns no response
-
-    def patch(self, url=None, data={}):
-        if url is None:
-            url = self.url
-        response = self.session.patch(url, data=data)
-
-        # TODO: handle response codes
-
-        return response.json()
-
 
 class ApiAdminClient(RestClient):
 
@@ -67,7 +31,13 @@ class ApiAdminClient(RestClient):
         return self.__send_create(api_data)
 
     def __send_create(self, api_data):
-        data = self.post(self.url + 'apis/', data=dict(api_data))
+        response = self.session.post(self.url + 'apis/', data=dict(api_data))
+
+        # TODO: handle response codes
+        if response.status_code == 409:
+            raise NameError(response.content)
+
+        data = response.json()
         return self.__api_data_from_response(data)
 
     @staticmethod
@@ -88,7 +58,11 @@ class ApiAdminClient(RestClient):
 
     def __send_delete(self, name_or_id):
         url = self.url + 'apis/' + name_or_id
-        return self.delete(url)
+        response = self.session.delete(url)
+
+        # TODO: handle response codes
+
+        return response.json()
 
     def api_update(self, api_data):
         if isinstance(api_data, ApiData):
@@ -102,7 +76,11 @@ class ApiAdminClient(RestClient):
 
     def __send_update(self, data):
         url = self.url + 'apis/' + data['name']
-        return self.patch(url, data)
+        response = self.session.patch(url, data=data)
+
+        # TODO: handle response codes
+
+        return response.json()
 
     def api_list(self, size=10):
         def generator():
@@ -120,8 +98,12 @@ class ApiAdminClient(RestClient):
 
     def __send_list(self, size=10, offset=0):
         url = self.url + 'apis/'
-        response = self.get(url, data={'offset': offset,
-                                       'size': size})
+        response = self.session.get(url, data={'offset': offset,
+                                               'size': size})
+
+        # TODO: handle response codes
+
+        response = response.json()
 
         if 'data' in response:
             apis = response['data']
