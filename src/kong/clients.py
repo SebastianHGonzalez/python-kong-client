@@ -1,4 +1,4 @@
-import requests.structures
+import requests
 
 from .data_structures import ApiData
 
@@ -6,13 +6,17 @@ from .data_structures import ApiData
 class RestClient:
 
     def __init__(self, url, requests_module=requests):
-        self._requests = requests_module
+        self._session = requests_module.session()
         self.url = url
+
+    @property
+    def session(self):
+        return self._session
 
     def get(self, url=None, data={}):
         if url is None:
             url = self.url
-        response = self._requests.get(url, data=data)
+        response = self.session.get(url, data=data)
 
         # TODO: handle response codes
 
@@ -21,7 +25,7 @@ class RestClient:
     def post(self, url=None, data={}):
         if url is None:
             url = self.url
-        response = self._requests.post(url, data=data)
+        response = self.session.post(url, data=data)
 
         # TODO: handle response codes
 
@@ -30,7 +34,7 @@ class RestClient:
     def delete(self, url=None, data={}):
         if url is None:
             url = self.url
-        response = self._requests.delete(url, data=data)
+        response = self.session.delete(url, data=data)
 
         # TODO: handle response codes
 
@@ -39,7 +43,7 @@ class RestClient:
     def patch(self, url=None, data={}):
         if url is None:
             url = self.url
-        response = self._requests.patch(url, data=data)
+        response = self.session.patch(url, data=data)
 
         # TODO: handle response codes
 

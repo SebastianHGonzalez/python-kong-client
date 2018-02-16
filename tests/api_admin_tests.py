@@ -44,9 +44,10 @@ class ApiAdminClientTest(unittest.TestCase):
                                 upstream_read_timeout=upstream_read_timeout)
 
         self.requests_mock = MagicMock()
-        self.requests_mock.post = MagicMock()
+        self.session_mock = MagicMock()
+        self.requests_mock.session.return_value = self.session_mock
 
-        self.requests_mock.post.return_value.json = lambda: {**self.api_data, **{'id': self.api_kong_id}}
+        self.session_mock.post.return_value.json = lambda: {**self.api_data, **{'id': self.api_kong_id}}
 
         self.kong_admin_url = self.faker.url()
         self.apis_endpoint = self.kong_admin_url + 'apis/'
@@ -80,7 +81,7 @@ class ApiAdminClientTest(unittest.TestCase):
         expected_api_data = ApiData(name=self.api_name,
                                     upstream_url=self.api_upstream_url,
                                     uris=self.api_uris)
-        self.requests_mock.post.assert_called_once_with(self.apis_endpoint,
+        self.session_mock.post.assert_called_once_with(self.apis_endpoint,
                                                         data=dict(expected_api_data))
 
     def test_api_admin_create_using_api_data(self):
@@ -95,7 +96,7 @@ class ApiAdminClientTest(unittest.TestCase):
         api_data = self.api_admin_client.api_create(orig_data)
 
         # Verify
-        self.requests_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(orig_data))
+        self.session_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(orig_data))
 
     def test_api_admin_delete_by_name(self):
         """
@@ -110,7 +111,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         expected_data = {}
         api_endpoint = self.apis_endpoint + self.api_name
-        self.requests_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
 
     def test_api_admin_delete_by_kong_id(self):
         """
@@ -125,7 +126,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         expected_data = {}
         api_endpoint = self.apis_endpoint + self.api_kong_id
-        self.requests_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
 
     def test_api_admin_delete_by_api_data(self):
         """
@@ -140,7 +141,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         expected_data = {}
         api_endpoint = self.apis_endpoint + self.api_name
-        self.requests_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.delete.assert_called_once_with(api_endpoint, data=expected_data)
 
     def test_api_admin_update(self):
         """
@@ -157,7 +158,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         expected_data = dict(api_data)
         api_endpoint = self.apis_endpoint + self.api_name
-        self.requests_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
 
     def test_api_admin_list(self):
         """
@@ -173,7 +174,7 @@ class ApiAdminClientTest(unittest.TestCase):
                                                         uris=self.faker.api_uris())
             apis.append(api_data)
 
-        self.requests_mock.get.return_value.json = lambda: {'total': amount,
+        self.session_mock.get.return_value.json = lambda: {'total': amount,
                                                             'data': apis}
 
         # Exercise
@@ -196,7 +197,7 @@ class ApiAdminClientTest(unittest.TestCase):
                                                         uris=self.faker.api_uris())
             apis.append(api_data)
 
-        self.requests_mock.get.return_value.json = lambda: {'total': amount,
+        self.session_mock.get.return_value.json = lambda: {'total': amount,
                                                             'data': apis}
 
         # Exercise
