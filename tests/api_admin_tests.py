@@ -181,3 +181,26 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertEqual(amount, actual_amount)
+
+    def test_api_admin_count(self):
+        """
+            Test: ApiAdmin.count() returns the number of created apis
+        """
+        # Setup
+        amount = self.faker.random_int(1, 50)
+        apis = []
+
+        for _ in range(amount):
+            api_data = self.api_admin_client.api_create(self.faker.api_name(),
+                                                        self.faker.url(),
+                                                        uris=self.faker.api_uris())
+            apis.append(api_data)
+
+        self.requests_mock.get.return_value.json = lambda: {'total': amount,
+                                                            'data': apis}
+
+        # Exercise
+        actual_amount = self.api_admin_client.api_count()
+
+        # Verify
+        self.assertEqual(amount, actual_amount)

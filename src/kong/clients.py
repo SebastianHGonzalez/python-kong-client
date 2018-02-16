@@ -101,11 +101,10 @@ class ApiAdminClient(RestClient):
         return self.patch(url, data)
 
     def api_list(self, size=10):
-        # TODO: return a iterable generator
         def generator():
             offset = None
             while True:
-                offset, cached = self.__send_list(offset, size)
+                offset, cached, _ = self.__send_list(size, offset)
 
                 while cached:
                     yield cached.pop()
@@ -115,7 +114,7 @@ class ApiAdminClient(RestClient):
 
         return generator()
 
-    def __send_list(self, offset=0, size=10):
+    def __send_list(self, size=10, offset=0):
         url = self.url + 'apis/'
         response = self.get(url, data={'offset': offset,
                                        'size': size})
@@ -130,4 +129,7 @@ class ApiAdminClient(RestClient):
         else:
             offset = None
 
-        return offset, apis
+        return offset, apis, response['total']
+
+    def api_count(self):
+        return self.__send_list()[2]
