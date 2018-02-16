@@ -1,6 +1,6 @@
 import requests
 
-from .data_structures import ApiData
+from .structures import ApiData
 
 
 class RestClient:

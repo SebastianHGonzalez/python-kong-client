@@ -1,7 +1,7 @@
 import unittest
 import faker
 from src.kong.providers import ApiDataProvider
-from src.kong.data_structures import ApiData
+from src.kong.structures import ApiData
 
 
 class ApiDataTests(unittest.TestCase):
