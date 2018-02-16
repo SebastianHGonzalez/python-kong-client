@@ -7,10 +7,13 @@ class RestClient:
 
     def __init__(self, url, requests_module=requests):
         self._session = requests_module.session()
+
+        # TODO: validate url
         self.url = url
 
     @property
     def session(self):
+        # TODO: research sessions inner workings
         return self._session
 
 
@@ -46,8 +49,7 @@ class ApiAdminClient(RestClient):
     def __api_data_from_response(data):
         d = {}
         for k in ApiData.allowed_parameters():
-            if k in data:
-                d[k] = data[k]
+            d[k] = data[k]
         return ApiData(**d)
 
     def api_delete(self, data):
