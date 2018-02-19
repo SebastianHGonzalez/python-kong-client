@@ -9,7 +9,8 @@ class ApiData(dict):
                'hosts', 'uris', 'methods', 'strip_uri',\
                'preserve_host', 'retries', 'https_only',\
                'http_if_terminated', 'upstream_connect_timeout',\
-               'upstream_send_timeout', 'upstream_read_timeout'
+               'upstream_send_timeout', 'upstream_read_timeout',\
+               'created_at'
 
     @staticmethod
     def satisfy_semi_optional_parameters(**kwargs):
@@ -52,3 +53,20 @@ class ApiData(dict):
                     string=uri) is None:
             raise ValueError("invalid uri: %s" % normalized)
         return normalized
+
+    def raw(self):
+        """
+            This is required by kong server 0.12
+            list must be coded like comma separated list string
+            {'uris':['/foo', '/bar']} -> {'uris': '/foo, /bar'}
+        :return: a dictionary with all list values transformed to comma separated list string
+        """
+        raw_data = {}
+        for k, v in self.items():
+            if isinstance(v, list):
+                val = ", ".join(v)
+            else:
+                val = v
+            raw_data[k] = val
+
+        return raw_data

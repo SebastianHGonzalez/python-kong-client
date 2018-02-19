@@ -47,7 +47,10 @@ class ApiAdminClientTest(unittest.TestCase):
         self.session_mock = MagicMock()
         self.requests_mock.session.return_value = self.session_mock
 
-        self.session_mock.post.return_value.json = lambda: {**self.api_data, **{'id': self.api_kong_id}}
+        add_id = lambda: {**self.api_data, **{'id': self.api_kong_id}}
+
+        self.session_mock.post.return_value.json = add_id
+        self.session_mock.put.return_value.json = add_id
 
         self.session_mock.get.return_value.status_code = 200
         self.session_mock.post.return_value.status_code = 201
@@ -85,9 +88,9 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         expected_api_data = ApiData(name=self.api_name,
                                     upstream_url=self.api_upstream_url,
-                                    uris=self.api_uris)
+                                    uris=self.api_uris).raw()
         self.session_mock.post.assert_called_once_with(self.apis_endpoint,
-                                                        data=dict(expected_api_data))
+                                                       data=expected_api_data)
 
     def test_api_admin_create_using_api_data(self):
         """
@@ -98,10 +101,10 @@ class ApiAdminClientTest(unittest.TestCase):
         orig_data = ApiData(name=self.api_name, upstream_url=self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        api_data = self.api_admin_client.api_create(orig_data)
+        self.api_admin_client.api_create(orig_data)
 
         # Verify
-        self.session_mock.post.assert_called_once_with(self.apis_endpoint, data=dict(orig_data))
+        self.session_mock.post.assert_called_once_with(self.apis_endpoint, data=orig_data.raw())
 
     def test_api_admin_delete_by_name(self):
         """
@@ -161,7 +164,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.api_admin_client.api_update(api_data)
 
         # Verify
-        expected_data = dict(api_data)
+        expected_data = api_data.raw()
         api_endpoint = self.apis_endpoint + self.api_name
         self.session_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
 
@@ -313,3 +316,27 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(NameError, r'Not found',
                                lambda: self.api_admin_client.api_retrieve(self.api_name))
+
+    def test_update_or_create_non_created_api(self):
+        # Setup
+        self.session_mock.put.return_value.status_code = 201
+
+        # Exercise
+        self.api_admin_client.api_update_or_create(self.api_data)
+
+        # Verify
+        expected_data = self.api_data.raw()
+        self.session_mock.put.assert_called_once_with(self.apis_endpoint, data=expected_data)
+
+    def test_update_or_create_created_api(self):
+        # Setup
+        self.session_mock.put.return_value.status_code = 200
+
+        api = self.api_admin_client.api_create(self.api_data)
+
+        # Exercise
+        self.api_admin_client.api_update_or_create(api)
+
+        # Verify
+        expected_data = api.raw()
+        self.session_mock.put.assert_called_once_with(self.apis_endpoint, data=expected_data)

@@ -36,7 +36,7 @@ class ApiAdminClient(RestClient):
         return self.__send_create(api_data)
 
     def __send_create(self, api_data):
-        response = self.session.post(self.url + 'apis/', data=dict(api_data))
+        response = self.session.post(self.url + 'apis/', data=api_data.raw())
 
         if response.status_code == 409:
             raise NameError(response.content)
@@ -61,7 +61,7 @@ class ApiAdminClient(RestClient):
         elif isinstance(data, str):
             name_or_id = data
         else:
-            raise ValueError("must provide ApiData instance or str")
+            raise TypeError("must provide ApiData instance or str")
 
         return self.__send_delete(name_or_id)
 
@@ -79,9 +79,9 @@ class ApiAdminClient(RestClient):
 
     def api_update(self, api_data):
         if isinstance(api_data, ApiData):
-            data = dict(api_data)
+            data = api_data.raw()
         elif isinstance(api_data, dict):
-            data = api_data
+            data = ApiData(**api_data).raw()
         else:
             raise TypeError('expected ApiData or dict instance')
 
@@ -143,7 +143,7 @@ class ApiAdminClient(RestClient):
 
     def api_retrieve(self, name_or_id):
         if not isinstance(name_or_id, str):
-            raise ValueError("expected str but got %s" % type(name_or_id))
+            raise TypeError("expected str but got %s" % type(name_or_id))
 
         data = self.__send_retrieve(name_or_id)
 
@@ -157,6 +157,23 @@ class ApiAdminClient(RestClient):
             raise NameError(response.content)
 
         if response.status_code != 200:
+            raise Exception(response.content)
+
+        return response.json()
+
+    def api_update_or_create(self, api_data):
+        if not isinstance(api_data, ApiData):
+            raise TypeError('expected ApiData instance buy got: %s' % type(api_data))
+
+        data = self.__send_update_or_create(api_data)
+
+        return self.__api_data_from_response(data)
+
+    def __send_update_or_create(self, api_data):
+        url = self.url + 'apis/'
+        response = self.session.put(url, data=api_data.raw())
+
+        if response.status_code not in [200, 201]:
             raise Exception(response.content)
 
         return response.json()
