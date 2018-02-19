@@ -50,8 +50,9 @@ class ApiAdminClient(RestClient):
     @staticmethod
     def __api_data_from_response(data):
         d = {}
-        for k in ApiData.allowed_parameters():
-            d[k] = data[k]
+        for k, v in data.items():
+            if k in ApiData.allowed_parameters():
+                d[k] = v
         return ApiData(**d)
 
     def api_delete(self, data):
@@ -139,3 +140,23 @@ class ApiAdminClient(RestClient):
 
     def api_count(self):
         return self.__send_list(0)[2]
+
+    def api_retrieve(self, name_or_id):
+        if not isinstance(name_or_id, str):
+            raise ValueError("expected str but got %s" % type(name_or_id))
+
+        data = self.__send_retrieve(name_or_id)
+
+        return self.__api_data_from_response(data)
+
+    def __send_retrieve(self, name_or_id):
+        url = self.url + 'apis/' + name_or_id
+        response = self.session.get(url)
+
+        if response.status_code == 404:
+            raise NameError(response.content)
+
+        if response.status_code != 200:
+            raise Exception(response.content)
+
+        return response.json()

@@ -293,3 +293,23 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(Exception, r'internal server error',
                                boom)
+
+    def test_retrieve_api(self):
+        # Setup
+        self.session_mock.get.return_value.status_code = 200
+        self.session_mock.get.return_value.json = lambda: dict(self.api_data)
+
+        # Exercise
+        retrieved = self.api_admin_client.api_retrieve(self.api_name)
+
+        # Verify
+        self.assertEqual(self.api_data, retrieved)
+
+    def test_retrieve_non_created_api(self):
+        # Setup
+        self.session_mock.get.return_value.status_code = 404
+        self.session_mock.get.return_value.content = {"message": "Not found"}
+
+        # Verify
+        self.assertRaisesRegex(NameError, r'Not found',
+                               lambda: self.api_admin_client.api_retrieve(self.api_name))
