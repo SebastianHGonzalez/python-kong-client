@@ -30,6 +30,8 @@ class ApiAdminClient(RestClient):
         elif isinstance(api_name_or_data, str):
             api_name = api_name_or_data
             api_data = ApiData(name=api_name, upstream_url=upstream_url, **kwargs)
+        else:
+            raise ValueError("must provide ApiData instance or name to create a api")
 
         return self.__send_create(api_data)
 
@@ -40,7 +42,7 @@ class ApiAdminClient(RestClient):
             raise NameError(response.content)
 
         if response.status_code != 201:
-            raise ValueError(response.content)
+            raise Exception(response.content)
 
         data = response.json()
         return self.__api_data_from_response(data)
@@ -55,8 +57,10 @@ class ApiAdminClient(RestClient):
     def api_delete(self, data):
         if isinstance(data, ApiData):
             name_or_id = data['name']
-        else:
+        elif isinstance(data, str):
             name_or_id = data
+        else:
+            raise ValueError("must provide ApiData instance or str")
 
         return self.__send_delete(name_or_id)
 
@@ -64,8 +68,11 @@ class ApiAdminClient(RestClient):
         url = self.url + 'apis/' + name_or_id
         response = self.session.delete(url)
 
+        if response.status_code == 404:
+            raise NameError(response.content)
+
         if response.status_code != 204:
-            raise ValueError(response.content)
+            raise Exception(response.content)
 
         return response.json()
 
@@ -90,7 +97,7 @@ class ApiAdminClient(RestClient):
             raise NameError(response.content)
 
         if response.status_code != 200:
-            raise ValueError(response.content)
+            raise Exception(response.content)
 
         return response.json()
 
@@ -113,11 +120,8 @@ class ApiAdminClient(RestClient):
         response = self.session.get(url, data={'offset': offset,
                                                'size': size})
 
-        if response.status_code == 400:
-            raise KeyError(response.content)
-
         if response.status_code != 200:
-            raise ValueError(response.content)
+            raise Exception(response.content)
 
         response = response.json()
 

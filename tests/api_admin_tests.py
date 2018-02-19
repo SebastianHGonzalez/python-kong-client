@@ -212,3 +212,84 @@ class ApiAdminClientTest(unittest.TestCase):
         self.assertEqual(amount, actual_amount)
 
     # TODO: test un happy paths (bad requests and responses)
+    def test_create_bad_request(self):
+        # Setup
+        self.session_mock.post.return_value.status_code = 409
+        self.session_mock.post.return_value.content = 'bad request'
+
+        # Verify
+        self.assertRaisesRegex(NameError, r'bad request',
+                               lambda: self.api_admin_client.api_create(self.api_name,
+                                                                        self.api_upstream_url,
+                                                                        uris=self.api_uris))
+
+    def test_create_internal_server_error(self):
+        # Setup
+        self.session_mock.post.return_value.status_code = 500
+        self.session_mock.post.return_value.content = 'internal server error'
+
+        # Verify
+        self.assertRaisesRegex(Exception, r'internal server error',
+                               lambda: self.api_admin_client.api_create(self.api_name,
+                                                                        self.api_upstream_url,
+                                                                        uris=self.api_uris))
+
+    def test_delete_not_existing_api(self):
+        # Setup
+        self.session_mock.delete.return_value.status_code = 404
+        self.session_mock.delete.return_value.content = {"message": "not found"}
+
+        # Verify
+        self.assertRaisesRegex(NameError, r"not found",
+                               lambda: self.api_admin_client.api_delete(self.api_name))
+
+    def test_delete_internal_server_error(self):
+        # Setup
+        self.session_mock.delete.return_value.status_code = 500
+        self.session_mock.delete.return_value.content = 'internal server error'
+
+        # Verify
+        self.assertRaisesRegex(Exception, r'internal server error',
+                               lambda: self.api_admin_client.api_delete(self.api_name))
+
+    def test_update_w_invalid_parameters(self):
+        # Setup
+        self.session_mock.patch.return_value.status_code = 400
+        self.session_mock.patch.return_value.content = {"strip": "strip is an unknown field"}
+
+        # Verify
+        self.assertRaisesRegex(KeyError, r"unknown field",
+                               lambda: self.api_admin_client.api_update(self.api_data))
+
+    def test_update_not_existing_api(self):
+        # Setup
+        self.session_mock.patch.return_value.status_code = 404
+        self.session_mock.patch.return_value.content = {"message": "not found"}
+
+        # Verify
+        self.assertRaisesRegex(NameError, r"not found",
+                               lambda: self.api_admin_client.api_update(self.api_data))
+
+    def test_update_internal_server_error(self):
+        # Setup
+        self.session_mock.patch.return_value.status_code = 500
+        self.session_mock.patch.return_value.content = 'internal server error'
+
+        # Verify
+        self.assertRaisesRegex(Exception, r'internal server error',
+                               lambda: self.api_admin_client.api_update(self.api_data))
+
+    def test_list_internal_server_error(self):
+        # Setup
+        self.session_mock.get.return_value.status_code = 500
+        self.session_mock.get.return_value.content = 'internal server error'
+
+        generator = self.api_admin_client.api_list()
+
+        def boom():
+            for _ in generator:
+                pass
+
+        # Verify
+        self.assertRaisesRegex(Exception, r'internal server error',
+                               boom)
