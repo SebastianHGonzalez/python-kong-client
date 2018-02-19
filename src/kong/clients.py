@@ -17,6 +17,9 @@ class RestClient:
         # TODO: research sessions inner workings
         return self._session
 
+
+class KongAbstractClient(RestClient):
+
     @property
     def endpoint(self):
         return self.url + self.path
@@ -25,8 +28,19 @@ class RestClient:
     def path(self):
         pass
 
+    def _send_create(self, data):
+        response = self.session.post(self.endpoint, data=data)
 
-class ApiAdminClient(RestClient):
+        if response.status_code == 409:
+            raise NameError(response.content)
+
+        if response.status_code != 201:
+            raise Exception(response.content)
+
+        return response.json()
+
+
+class ApiAdminAbstractClient(KongAbstractClient):
 
     @property
     def path(self):
@@ -46,18 +60,7 @@ class ApiAdminClient(RestClient):
         else:
             raise ValueError("must provide ApiData instance or name to create a api")
 
-        return self.__send_create(api_data)
-
-    def __send_create(self, api_data):
-        response = self.session.post(self.endpoint, data=api_data.raw())
-
-        if response.status_code == 409:
-            raise NameError(response.content)
-
-        if response.status_code != 201:
-            raise Exception(response.content)
-
-        data = response.json()
+        data = self._send_create(api_data.raw())
         return self.__api_data_from_response(data)
 
     @staticmethod
@@ -191,7 +194,7 @@ class ApiAdminClient(RestClient):
         return response.json()
 
 
-class ConsumerAdminClient(RestClient):
+class ConsumerAdminAbstractClient(KongAbstractClient):
 
     @property
     def path(self):
@@ -207,15 +210,4 @@ class ConsumerAdminClient(RestClient):
         if custom_id:
             consumer_data['custom_id'] = custom_id
 
-        self.__send_create(consumer_data)
-
-    def __send_create(self, consumer_data):
-        response = self.session.post(self.endpoint, data=consumer_data)
-
-        if response.status_code == 409:
-            raise NameError(response.content)
-
-        if response.status_code != 201:
-            raise Exception(response.content)
-
-        return response.json()
+        self._send_create(consumer_data)

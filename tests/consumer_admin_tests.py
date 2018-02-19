@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 import faker
 
-from src.kong.clients import ConsumerAdminClient
+from src.kong.clients import ConsumerAdminAbstractClient
 
 
 class ApiAdminClientTest(unittest.TestCase):
@@ -21,7 +21,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.consumer_custom_id = self.faker.uuid4()
 
         self.kong_admin_url = self.faker.url()
-        self.consumer_admin_client = ConsumerAdminClient(self.kong_admin_url, requests_module=self.requests_mock)
+        self.consumer_admin_client = ConsumerAdminAbstractClient(self.kong_admin_url, requests_module=self.requests_mock)
 
         self.consumer_endpoint = self.kong_admin_url + 'consumers/'
 
