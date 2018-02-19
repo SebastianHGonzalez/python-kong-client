@@ -6,8 +6,8 @@ from .structures import ApiData
 
 class RestClient:
 
-    def __init__(self, url, requests_module=requests):
-        self._session = requests_module.session()
+    def __init__(self, url, session=requests.session()):
+        self._session = session
 
         # TODO: validate url
         self.url = url
@@ -40,7 +40,7 @@ class KongAbstractClient(RestClient):
         return response.json()
 
 
-class ApiAdminAbstractClient(KongAbstractClient):
+class ApiAdminClient(KongAbstractClient):
 
     @property
     def path(self):
@@ -194,7 +194,7 @@ class ApiAdminAbstractClient(KongAbstractClient):
         return response.json()
 
 
-class ConsumerAdminAbstractClient(KongAbstractClient):
+class ConsumerAdminClient(KongAbstractClient):
 
     @property
     def path(self):

@@ -4,7 +4,7 @@ from faker import Faker
 
 from src.kong.providers import ApiDataProvider
 
-from src.kong.clients import ApiAdminAbstractClient
+from src.kong.clients import ApiAdminClient
 from src.kong.structures import ApiData
 
 
@@ -60,7 +60,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.kong_admin_url = self.faker.url()
         self.apis_endpoint = self.kong_admin_url + 'apis/'
 
-        self.api_admin_client = ApiAdminAbstractClient(self.kong_admin_url, requests_module=self.requests_mock)
+        self.api_admin_client = ApiAdminClient(self.kong_admin_url, session=self.requests_mock.session())
         #self.api_admin_client = ApiAdminClient('http://localhost:8001/')
 
     def test_api_admin_create(self):
