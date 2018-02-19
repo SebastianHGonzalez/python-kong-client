@@ -1,4 +1,5 @@
 import requests
+from abc import abstractmethod
 
 from .structures import ApiData
 
@@ -16,11 +17,20 @@ class RestClient:
         # TODO: research sessions inner workings
         return self._session
 
+    @property
+    def endpoint(self):
+        return self.url + self.path
+
+    @abstractmethod
+    def path(self):
+        pass
+
 
 class ApiAdminClient(RestClient):
 
-    def apis_endpoint(self):
-        return self.url + 'apis/'
+    @property
+    def path(self):
+        return 'apis/'
 
     def api_create(self, api_name_or_data, upstream_url=None, **kwargs):
 
@@ -39,7 +49,7 @@ class ApiAdminClient(RestClient):
         return self.__send_create(api_data)
 
     def __send_create(self, api_data):
-        response = self.session.post(self.apis_endpoint(), data=api_data.raw())
+        response = self.session.post(self.endpoint, data=api_data.raw())
 
         if response.status_code == 409:
             raise NameError(response.content)
@@ -69,7 +79,7 @@ class ApiAdminClient(RestClient):
         return self.__send_delete(name_or_id)
 
     def __send_delete(self, name_or_id):
-        url = self.apis_endpoint() + name_or_id
+        url = self.endpoint + name_or_id
         response = self.session.delete(url)
 
         if response.status_code == 404:
@@ -91,7 +101,7 @@ class ApiAdminClient(RestClient):
         return self.__send_update(data)
 
     def __send_update(self, data):
-        url = self.apis_endpoint() + data['name']
+        url = self.endpoint + data['name']
         response = self.session.patch(url, data=data)
 
         if response.status_code == 400:
@@ -120,7 +130,7 @@ class ApiAdminClient(RestClient):
         return generator()
 
     def __send_list(self, size=10, offset=None):
-        url = self.apis_endpoint()
+        url = self.endpoint
         response = self.session.get(url, data={'offset': offset,
                                                'size': size})
 
@@ -153,7 +163,7 @@ class ApiAdminClient(RestClient):
         return self.__api_data_from_response(data)
 
     def __send_retrieve(self, name_or_id):
-        url = self.apis_endpoint() + name_or_id
+        url = self.endpoint + name_or_id
         response = self.session.get(url)
 
         if response.status_code == 404:
@@ -173,10 +183,39 @@ class ApiAdminClient(RestClient):
         return self.__api_data_from_response(data)
 
     def __send_update_or_create(self, api_data):
-        url = self.apis_endpoint()
-        response = self.session.put(url, data=api_data.raw())
+        response = self.session.put(self.endpoint, data=api_data.raw())
 
         if response.status_code not in [200, 201]:
+            raise Exception(response.content)
+
+        return response.json()
+
+
+class ConsumerAdminClient(RestClient):
+
+    @property
+    def path(self):
+        return 'consumers/'
+
+    def consumer_create(self, username=None, custom_id=None):
+        if not username and not custom_id:
+            raise ValueError('username or custom_id must be provided to create consumer')
+
+        consumer_data = {}
+        if username:
+            consumer_data['username'] = username
+        if custom_id:
+            consumer_data['custom_id'] = custom_id
+
+        self.__send_create(consumer_data)
+
+    def __send_create(self, consumer_data):
+        response = self.session.post(self.endpoint, data=consumer_data)
+
+        if response.status_code == 409:
+            raise NameError(response.content)
+
+        if response.status_code != 201:
             raise Exception(response.content)
 
         return response.json()
