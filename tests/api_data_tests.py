@@ -58,10 +58,22 @@ class ApiDataTests(unittest.TestCase):
         invalid_value = ""
 
         # Verify
-        self.assertRaisesRegex(ValueError,
+        self.assertRaisesRegex(KeyError,
                                r'invalid_field',
                                lambda: ApiData(name=self.api_name,
                                                upstream_url=self.api_upstream_url,
                                                uris=self.api_uris,
                                                invalid_field=invalid_value))
+
+    def test_create_api_data_w_invalid_value_raises_exception(self):
+        # Setup
+        invalid_value = None
+
+        # Verify
+        self.assertRaisesRegex(ValueError,
+                               r'invalid value',
+                               lambda: ApiData(name=self.api_name,
+                                               upstream_url=self.api_upstream_url,
+                                               uris=self.api_uris,
+                                               methods=invalid_value))
 

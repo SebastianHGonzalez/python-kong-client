@@ -30,10 +30,16 @@ class ApiData(dict):
             raise ValueError('uris, methods or hosts must be provided to create')
 
         for k, v in kwargs.items():
-            if k in self.allowed_parameters():
-                self[k] = v
-            else:
-                raise ValueError('invalid parameter: %s' % k)
+            self.validate(k, v)
+
+            self[k] = v
+
+    def validate(self, parameter, value):
+        if parameter not in self.allowed_parameters():
+            raise KeyError('invalid parameter: %s' % parameter)
+
+        if not isinstance(value, (str, int, bool, list)):
+            raise ValueError('invalid value: %s value must be str, int, bool, or list' % parameter)
 
     def add_uri(self, uri):
         self['uris'].append(self.__normalize_uri(uri))
