@@ -70,7 +70,7 @@ class ApiAdminClientTest(unittest.TestCase):
         """
 
         # Exercise
-        api_data = self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         self.assertEqual(api_data['name'], self.api_name)
@@ -83,7 +83,7 @@ class ApiAdminClientTest(unittest.TestCase):
             to kong server to create the api in the server.
         """
         # Exercise
-        self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         expected_api_data = ApiData(name=self.api_name,
@@ -101,7 +101,7 @@ class ApiAdminClientTest(unittest.TestCase):
         orig_data = ApiData(name=self.api_name, upstream_url=self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        self.api_admin_client.api_create(orig_data)
+        self.api_admin_client.create(orig_data)
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.apis_endpoint, data=orig_data.raw())
@@ -111,10 +111,10 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin.delete(api_name) deletes it from kong server
         """
         # Setup
-        self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        self.api_admin_client.api_delete(self.api_name)
+        self.api_admin_client.delete(self.api_name)
 
         # Verify
         expected_data = {}
@@ -126,10 +126,10 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin.delete(api_kong_id) deletes it from kong server
         """
         # Setup
-        self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        self.api_admin_client.api_delete(self.api_kong_id)
+        self.api_admin_client.delete(self.api_kong_id)
 
         # Verify
         expected_data = {}
@@ -141,10 +141,10 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin.delete(api_data) deletes it from kong server
         """
         # Setup
-        api_data = self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
-        self.api_admin_client.api_delete(api_data)
+        self.api_admin_client.delete(api_data)
 
         # Verify
         expected_data = {}
@@ -156,12 +156,12 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin.update(api_data) updates it in kong server
         """
         # Setup
-        api_data = self.api_admin_client.api_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
         new_uri = self.faker.api_path()
 
         # Exercise
         api_data.add_uri(new_uri)
-        self.api_admin_client.api_update(api_data)
+        self.api_admin_client.update(api_data)
 
         # Verify
         expected_data = api_data.raw()
@@ -177,16 +177,16 @@ class ApiAdminClientTest(unittest.TestCase):
         apis = []
 
         for _ in range(amount):
-            api_data = self.api_admin_client.api_create(self.faker.api_name(),
-                                                        self.faker.url(),
-                                                        uris=self.faker.api_uris())
+            api_data = self.api_admin_client.create(self.faker.api_name(),
+                                                    self.faker.url(),
+                                                    uris=self.faker.api_uris())
             apis.append(api_data)
 
         self.session_mock.get.return_value.json = lambda: {'total': amount,
                                                             'data': apis}
 
         # Exercise
-        actual_amount = len(list(self.api_admin_client.api_list()))
+        actual_amount = len(list(self.api_admin_client.list()))
 
         # Verify
         self.assertEqual(amount, actual_amount)
@@ -200,16 +200,16 @@ class ApiAdminClientTest(unittest.TestCase):
         apis = []
 
         for _ in range(amount):
-            api_data = self.api_admin_client.api_create(self.faker.api_name(),
-                                                        self.faker.url(),
-                                                        uris=self.faker.api_uris())
+            api_data = self.api_admin_client.create(self.faker.api_name(),
+                                                    self.faker.url(),
+                                                    uris=self.faker.api_uris())
             apis.append(api_data)
 
         self.session_mock.get.return_value.json = lambda: {'total': amount,
                                                             'data': apis}
 
         # Exercise
-        actual_amount = self.api_admin_client.api_count()
+        actual_amount = self.api_admin_client.count()
 
         # Verify
         self.assertEqual(amount, actual_amount)
@@ -222,9 +222,9 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r'bad request',
-                               lambda: self.api_admin_client.api_create(self.api_name,
-                                                                        self.api_upstream_url,
-                                                                        uris=self.api_uris))
+                               lambda: self.api_admin_client.create(self.api_name,
+                                                                    self.api_upstream_url,
+                                                                    uris=self.api_uris))
 
     def test_create_internal_server_error(self):
         # Setup
@@ -233,9 +233,9 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(Exception, r'internal server error',
-                               lambda: self.api_admin_client.api_create(self.api_name,
-                                                                        self.api_upstream_url,
-                                                                        uris=self.api_uris))
+                               lambda: self.api_admin_client.create(self.api_name,
+                                                                    self.api_upstream_url,
+                                                                    uris=self.api_uris))
 
     def test_delete_not_existing_api(self):
         # Setup
@@ -244,7 +244,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r"not found",
-                               lambda: self.api_admin_client.api_delete(self.api_name))
+                               lambda: self.api_admin_client.delete(self.api_name))
 
     def test_delete_internal_server_error(self):
         # Setup
@@ -253,7 +253,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(Exception, r'internal server error',
-                               lambda: self.api_admin_client.api_delete(self.api_name))
+                               lambda: self.api_admin_client.delete(self.api_name))
 
     def test_update_w_invalid_parameters(self):
         # Setup
@@ -262,7 +262,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(KeyError, r"unknown field",
-                               lambda: self.api_admin_client.api_update(self.api_data))
+                               lambda: self.api_admin_client.update(self.api_data))
 
     def test_update_not_existing_api(self):
         # Setup
@@ -271,7 +271,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r"not found",
-                               lambda: self.api_admin_client.api_update(self.api_data))
+                               lambda: self.api_admin_client.update(self.api_data))
 
     def test_update_internal_server_error(self):
         # Setup
@@ -280,14 +280,14 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(Exception, r'internal server error',
-                               lambda: self.api_admin_client.api_update(self.api_data))
+                               lambda: self.api_admin_client.update(self.api_data))
 
     def test_list_internal_server_error(self):
         # Setup
         self.session_mock.get.return_value.status_code = 500
         self.session_mock.get.return_value.content = 'internal server error'
 
-        generator = self.api_admin_client.api_list()
+        generator = self.api_admin_client.list()
 
         def boom():
             for _ in generator:
@@ -303,7 +303,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.session_mock.get.return_value.json = lambda: dict(self.api_data)
 
         # Exercise
-        retrieved = self.api_admin_client.api_retrieve(self.api_name)
+        retrieved = self.api_admin_client.retrieve(self.api_name)
 
         # Verify
         self.assertEqual(self.api_data, retrieved)
@@ -315,14 +315,14 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r'Not found',
-                               lambda: self.api_admin_client.api_retrieve(self.api_name))
+                               lambda: self.api_admin_client.retrieve(self.api_name))
 
     def test_update_or_create_non_created_api(self):
         # Setup
         self.session_mock.put.return_value.status_code = 201
 
         # Exercise
-        self.api_admin_client.api_update_or_create(self.api_data)
+        self.api_admin_client.update_or_create(self.api_data)
 
         # Verify
         expected_data = self.api_data.raw()
@@ -332,10 +332,10 @@ class ApiAdminClientTest(unittest.TestCase):
         # Setup
         self.session_mock.put.return_value.status_code = 200
 
-        api = self.api_admin_client.api_create(self.api_data)
+        api = self.api_admin_client.create(self.api_data)
 
         # Exercise
-        self.api_admin_client.api_update_or_create(api)
+        self.api_admin_client.update_or_create(api)
 
         # Verify
         expected_data = api.raw()

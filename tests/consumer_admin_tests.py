@@ -8,17 +8,25 @@ from src.kong.clients import ConsumerAdminClient
 class ApiAdminClientTest(unittest.TestCase):
 
     def setUp(self):
-        self.session_mock = MagicMock()
-
-        self.session_mock.post.return_value.status_code = 201
-
-        self.requests_mock = MagicMock()
-        self.requests_mock.session.return_value = self.session_mock
-
         self.faker = faker.Faker()
 
         self.consumer_username = self.faker.user_name()
         self.consumer_custom_id = self.faker.uuid4()
+        self.consumer_id = self.faker.uuid4()
+
+        self.session_mock = MagicMock()
+
+        self.json = lambda: {'id': self.consumer_id,
+                             'username': self.consumer_username,
+                             'custom_id': self.consumer_custom_id}
+
+        self.session_mock.post.return_value.status_code = 201
+        self.session_mock.get.return_value.status_code = 200
+
+        self.session_mock.post.return_value.json = self.json
+
+        self.requests_mock = MagicMock()
+        self.requests_mock.session.return_value = self.session_mock
 
         self.kong_admin_url = self.faker.url()
         self.consumer_admin_client = ConsumerAdminClient(self.kong_admin_url, session=self.requests_mock.session())
@@ -27,7 +35,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_create_consumer_w_username(self):
         # Exercise
-        self.consumer_admin_client.consumer_create(username=self.consumer_username)
+        self.consumer_admin_client.create(username=self.consumer_username)
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
@@ -35,7 +43,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_create_consumer_w_custom_id(self):
         # Exercise
-        self.consumer_admin_client.consumer_create(custom_id=self.consumer_custom_id)
+        self.consumer_admin_client.create(custom_id=self.consumer_custom_id)
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
@@ -43,8 +51,8 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_create_consumer_w_custom_id_and_username(self):
         # Exercise
-        self.consumer_admin_client.consumer_create(username=self.consumer_username,
-                                                   custom_id=self.consumer_custom_id)
+        self.consumer_admin_client.create(username=self.consumer_username,
+                                          custom_id=self.consumer_custom_id)
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
@@ -54,7 +62,7 @@ class ApiAdminClientTest(unittest.TestCase):
     def test_create_consumer_wo_parameters(self):
         # Verify
         self.assertRaisesRegex(ValueError, r'username',
-                               self.consumer_admin_client.consumer_create)
+                               self.consumer_admin_client.create)
 
     def test_create_conflict_username(self):
         # Setup
@@ -64,7 +72,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r'already exists',
-                               lambda: self.consumer_admin_client.consumer_create(self.consumer_username))
+                               lambda: self.consumer_admin_client.create(self.consumer_username))
 
     def test_create_internal_server_error(self):
         # Setup
@@ -73,4 +81,11 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(Exception, r'server error',
-                               lambda: self.consumer_admin_client.consumer_create(self.consumer_username))
+                               lambda: self.consumer_admin_client.create(self.consumer_username))
+
+    def test_retrieve(self):
+        # Exercise
+        self.consumer_admin_client.retrieve(self.consumer_username)
+
+        # Verify
+        self.session_mock.get.asser_called_once_with(self.consumer_endpoint + self.consumer_username)
