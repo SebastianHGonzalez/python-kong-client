@@ -19,6 +19,9 @@ class RestClient:
 
 class ApiAdminClient(RestClient):
 
+    def apis_endpoint(self):
+        return self.url + 'apis/'
+
     def api_create(self, api_name_or_data, upstream_url=None, **kwargs):
 
         if isinstance(api_name_or_data, ApiData):
@@ -36,7 +39,7 @@ class ApiAdminClient(RestClient):
         return self.__send_create(api_data)
 
     def __send_create(self, api_data):
-        response = self.session.post(self.url + 'apis/', data=api_data.raw())
+        response = self.session.post(self.apis_endpoint(), data=api_data.raw())
 
         if response.status_code == 409:
             raise NameError(response.content)
@@ -66,7 +69,7 @@ class ApiAdminClient(RestClient):
         return self.__send_delete(name_or_id)
 
     def __send_delete(self, name_or_id):
-        url = self.url + 'apis/' + name_or_id
+        url = self.apis_endpoint() + name_or_id
         response = self.session.delete(url)
 
         if response.status_code == 404:
@@ -88,7 +91,7 @@ class ApiAdminClient(RestClient):
         return self.__send_update(data)
 
     def __send_update(self, data):
-        url = self.url + 'apis/' + data['name']
+        url = self.apis_endpoint() + data['name']
         response = self.session.patch(url, data=data)
 
         if response.status_code == 400:
@@ -117,7 +120,7 @@ class ApiAdminClient(RestClient):
         return generator()
 
     def __send_list(self, size=10, offset=None):
-        url = self.url + 'apis/'
+        url = self.apis_endpoint()
         response = self.session.get(url, data={'offset': offset,
                                                'size': size})
 
@@ -150,7 +153,7 @@ class ApiAdminClient(RestClient):
         return self.__api_data_from_response(data)
 
     def __send_retrieve(self, name_or_id):
-        url = self.url + 'apis/' + name_or_id
+        url = self.apis_endpoint() + name_or_id
         response = self.session.get(url)
 
         if response.status_code == 404:
@@ -163,14 +166,14 @@ class ApiAdminClient(RestClient):
 
     def api_update_or_create(self, api_data):
         if not isinstance(api_data, ApiData):
-            raise TypeError('expected ApiData instance buy got: %s' % type(api_data))
+            raise TypeError('expected ApiData instance but got: %s' % type(api_data))
 
         data = self.__send_update_or_create(api_data)
 
         return self.__api_data_from_response(data)
 
     def __send_update_or_create(self, api_data):
-        url = self.url + 'apis/'
+        url = self.apis_endpoint()
         response = self.session.put(url, data=api_data.raw())
 
         if response.status_code not in [200, 201]:
