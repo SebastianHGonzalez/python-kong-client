@@ -37,8 +37,8 @@ class KongAbstractClient(RestClient):
         pass
 
     def _send_create(self, data, endpoint=None):
-        if endpoint is None:
-            endpoint = self.endpoint
+
+        endpoint = endpoint or self.endpoint
 
         response = self.session.post(endpoint, data=data)
 
@@ -50,8 +50,9 @@ class KongAbstractClient(RestClient):
 
         return response.json()
 
-    def _send_delete(self, name_or_id):
-        url = self.endpoint + name_or_id
+    def _send_delete(self, name_or_id, endpoint=None):
+        endpoint = endpoint or self.endpoint
+        url = endpoint + name_or_id
         response = self.session.delete(url)
 
         if response.status_code == 404:
@@ -295,3 +296,10 @@ class PluginAdminClient(KongAbstractClient):
                 data['config.' + k] = val
 
         return self._send_create(data, api_plugins_endpoint)
+
+    def delete(self, plugin_id, api_pk=None):
+        endpoint = None
+        if api_pk is not None:
+            endpoint = self.url + 'apis/' + api_pk + '/'
+
+        return self._send_delete(plugin_id, endpoint=endpoint)
