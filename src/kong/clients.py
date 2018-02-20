@@ -112,6 +112,9 @@ class KongAbstractClient(RestClient):
     def _send_update_or_create(self, data):
         response = self.session.put(self.endpoint, data=data)
 
+        if response.status_code == 409:
+            raise NameError(response.content)
+
         if response.status_code not in [200, 201]:
             raise Exception(response.content)
 
@@ -262,3 +265,6 @@ class ConsumerAdminClient(KongAbstractClient):
             consumer_data['custom_id'] = custom_id
 
         return self._send_create(consumer_data)
+
+    def update_or_create(self, data):
+        return self._send_update_or_create(data)
