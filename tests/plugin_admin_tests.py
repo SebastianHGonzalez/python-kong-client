@@ -30,6 +30,7 @@ class PluginAdminTest(unittest.TestCase):
 
         self.session_mock.post.return_value.status_code = 201
         self.session_mock.get.return_value.status_code = 200
+        self.session_mock.delete.return_value.status_code = 204
 
     def test_create_plugin_for_all_apis_and_consumers(self):
 
@@ -132,3 +133,19 @@ class PluginAdminTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
                                lambda: self.plugin_admin_client.list(invalid_field='invalid_value'))
+
+    def test_detete_plugin(self):
+        # Exercise
+        self.plugin_admin_client.delete(self.plugin_id)
+
+        # Verify
+        expected_url = self.plugins_endpoint + self.plugin_id
+        self.session_mock.delete.assert_called_once_with(expected_url)
+
+    def test_delete_plugin_w_api_pk(self):
+        # Exercise
+        self.plugin_admin_client.delete(self.plugin_id, api_pk=self.api_name_or_id)
+
+        # Verify
+        expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/' + self.plugin_id
+        self.session_mock.delete.assert_called_once_with(expected_url)
