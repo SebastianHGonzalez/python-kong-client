@@ -87,3 +87,48 @@ class PluginAdminTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(NameError, 'Not found',
                                lambda: self.plugin_admin_client.retrieve(self.plugin_id))
+
+    def test_list_plugins(self):
+        # Setup
+        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.plugin_json]}
+
+        # Exercise
+        generator = self.plugin_admin_client.list()
+
+        plugin_json = generator.__next__()
+
+        # Verify
+        self.assertEqual(plugin_json, self.plugin_json)
+        self.session_mock.get.assert_called_once_with(self.plugins_endpoint,
+                                                      data={'size': 10,
+                                                            'offset': None})
+
+    def test_list_plugins_w_parameters(self):
+        # Setup
+        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.plugin_json]}
+
+        # Exercise
+        generator = self.plugin_admin_client.list(id=self.plugin_id,
+                                                  name=self.plugin_name,
+                                                  api_id=self.api_name_or_id,
+                                                  consumer_id=self.consumer_id)
+
+        plugin_json = generator.__next__()
+
+        # Verify
+        self.assertEqual(plugin_json, self.plugin_json)
+        self.session_mock.get.assert_called_once_with(self.plugins_endpoint,
+                                                      data={'size': 10,
+                                                            'offset': None,
+                                                            'id': self.plugin_id,
+                                                            'name': self.plugin_name,
+                                                            'api_id': self.api_name_or_id,
+                                                            'consumer_id': self.consumer_id})
+
+    def test_list_plugins_w_invalid_parameters(self):
+        # Setup
+        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.plugin_json]}
+
+        # Verify
+        self.assertRaisesRegex(KeyError, 'invalid_field',
+                               lambda: self.plugin_admin_client.list(invalid_field='invalid_value'))
