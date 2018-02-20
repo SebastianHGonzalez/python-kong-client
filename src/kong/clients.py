@@ -32,6 +32,10 @@ class KongAbstractClient(RestClient):
     def _allowed_query_params(self):
         pass
 
+    @abstractmethod
+    def _allowed_update_params(self):
+        pass
+
     def _send_create(self, data):
         response = self.session.post(self.endpoint, data=data)
 
@@ -55,8 +59,8 @@ class KongAbstractClient(RestClient):
 
         return response.json()
 
-    def _send_update(self, name_or_id, data):
-        url = self.endpoint + name_or_id
+    def _send_update(self, pk_or_id, data):
+        url = self.endpoint + pk_or_id
         response = self.session.patch(url, data=data)
 
         if response.status_code == 400:
@@ -113,20 +117,15 @@ class KongAbstractClient(RestClient):
 
         return response.json()
 
-    def retrieve(self, name_or_id):
-        if not isinstance(name_or_id, str):
-            raise TypeError("expected str but got %s" % type(name_or_id))
+    def retrieve(self, pk_or_id):
+        if not isinstance(pk_or_id, str):
+            raise TypeError("expected str but got %s" % type(pk_or_id))
 
-        return self._send_retrieve(name_or_id)
+        return self._send_retrieve(pk_or_id)
 
     def list(self, size=10, **kwargs):
 
-        query_params = {}
-        for k, v in kwargs.items():
-            if k in self._allowed_query_params:
-                query_params[k] = v
-            else:
-                raise KeyError('invalid query parameter: %s' % k)
+        query_params = self._validate_query_params(kwargs)
 
         def generator():
             offset = None
@@ -141,12 +140,45 @@ class KongAbstractClient(RestClient):
 
         return generator()
 
+    @staticmethod
+    def _validate_params(query_params, allowed_params):
+        validated_params = {}
+        for k, val in query_params.items():
+            if k in allowed_params:
+                validated_params[k] = val
+            else:
+                raise KeyError('invalid query parameter: %s' % k)
+        return validated_params
+
+    def _validate_query_params(self, params):
+        return self._validate_params(params, self._allowed_query_params)
+
+    def _validate_update_params(self, params):
+        return self._validate_params(params, self._allowed_update_params)
+
+    def update(self, pk_or_id, **kwargs):
+
+        query_params = self._validate_update_params(kwargs)
+
+        return self._send_update(pk_or_id, query_params)
+
 
 class ApiAdminClient(KongAbstractClient):
 
     @property
     def _allowed_query_params(self):
         return ['id', 'name', 'upstream_url', 'retries']
+
+    @property
+    def _allowed_update_params(self):
+        return self._allowed_query_params + ['hosts', 'uris',
+                                             'methods', 'strip_uri',
+                                             'preserve_host', 'https_only',
+                                             'http_if_terminated',
+                                             'upstream_connect_timeout',
+                                             'upstream_send_timeout',
+                                             'upstream_read_timeout',
+                                             'created_at']
 
     @property
     def path(self):
@@ -187,22 +219,12 @@ class ApiAdminClient(KongAbstractClient):
 
         return self._send_delete(name_or_id)
 
-    def update(self, api_data):
-        if isinstance(api_data, ApiData):
-            data = api_data.raw()
-        elif isinstance(api_data, dict):
-            data = ApiData(**api_data).raw()
-        else:
-            raise TypeError('expected ApiData or dict instance')
-
-        return self._send_update(data['name'], data)
-
     def count(self):
         return self._send_list(0)[2]
 
-    def retrieve(self, name_or_id):
+    def retrieve(self, pk_or_id):
 
-        data = super(ApiAdminClient, self).retrieve(name_or_id)
+        data = super(ApiAdminClient, self).retrieve(pk_or_id)
 
         return self.__api_data_from_response(data)
 
@@ -223,7 +245,11 @@ class ConsumerAdminClient(KongAbstractClient):
 
     @property
     def _allowed_query_params(self):
-        return ['id', 'custom_id', 'username']
+        return ['id'] + self._allowed_update_params
+
+    @property
+    def _allowed_update_params(self):
+        return ['custom_id', 'username']
 
     def create(self, username=None, custom_id=None):
         if not username and not custom_id:
@@ -236,4 +262,3 @@ class ConsumerAdminClient(KongAbstractClient):
             consumer_data['custom_id'] = custom_id
 
         return self._send_create(consumer_data)
-

@@ -152,16 +152,13 @@ class ApiAdminClientTest(unittest.TestCase):
         self.session_mock.delete.assert_called_once_with(api_endpoint)
 
     def test_api_admin_update(self):
-        """
-            Test: ApiAdmin.update(api_data) updates it in kong server
-        """
         # Setup
         api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
         new_uri = self.faker.api_path()
 
         # Exercise
         api_data.add_uri(new_uri)
-        self.api_admin_client.update(api_data)
+        self.api_admin_client.update(api_data['name'], **api_data.raw())
 
         # Verify
         expected_data = api_data.raw()
@@ -288,7 +285,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(KeyError, r"unknown field",
-                               lambda: self.api_admin_client.update(self.api_data))
+                               lambda: self.api_admin_client.update(self.api_data['name'], **self.api_data.raw()))
 
     def test_update_not_existing_api(self):
         # Setup
@@ -297,7 +294,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r"not found",
-                               lambda: self.api_admin_client.update(self.api_data))
+                               lambda: self.api_admin_client.update(self.api_data['name'], **self.api_data.raw()))
 
     def test_update_internal_server_error(self):
         # Setup
@@ -306,7 +303,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(Exception, r'internal server error',
-                               lambda: self.api_admin_client.update(self.api_data))
+                               lambda: self.api_admin_client.update(self.api_data['name'], **self.api_data.raw()))
 
     def test_list_internal_server_error(self):
         # Setup
