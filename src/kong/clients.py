@@ -275,6 +275,10 @@ class PluginAdminClient(KongAbstractClient):
     def path(self):
         return 'plugins/'
 
+    @property
+    def _allowed_query_params(self):
+        return 'id', 'name', 'api_id', 'consumer_id'
+
     def create(self, plugin_name, consumer_id=None, api_name_or_id=None, config=None):
         data = {'name': plugin_name}
 
