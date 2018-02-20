@@ -120,6 +120,22 @@ class KongAbstractClient(RestClient):
 
         return response.json()
 
+    @staticmethod
+    def _validate_params(query_params, allowed_params):
+        validated_params = {}
+        for k, val in query_params.items():
+            if k in allowed_params:
+                validated_params[k] = val
+            else:
+                raise KeyError('invalid query parameter: %s' % k)
+        return validated_params
+
+    def _validate_query_params(self, params):
+        return self._validate_params(params, self._allowed_query_params)
+
+    def _validate_update_params(self, params):
+        return self._validate_params(params, self._allowed_update_params)
+
     def retrieve(self, pk_or_id):
         if not isinstance(pk_or_id, str):
             raise TypeError("expected str but got %s" % type(pk_or_id))
@@ -143,21 +159,8 @@ class KongAbstractClient(RestClient):
 
         return generator()
 
-    @staticmethod
-    def _validate_params(query_params, allowed_params):
-        validated_params = {}
-        for k, val in query_params.items():
-            if k in allowed_params:
-                validated_params[k] = val
-            else:
-                raise KeyError('invalid query parameter: %s' % k)
-        return validated_params
-
-    def _validate_query_params(self, params):
-        return self._validate_params(params, self._allowed_query_params)
-
-    def _validate_update_params(self, params):
-        return self._validate_params(params, self._allowed_update_params)
+    def count(self):
+        return self._send_list(0)[2]
 
     def update(self, pk_or_id, **kwargs):
 
@@ -220,9 +223,6 @@ class ApiAdminClient(KongAbstractClient):
             if k in ApiData.allowed_parameters():
                 d[k] = v
         return ApiData(**d)
-
-    def count(self):
-        return self._send_list(0)[2]
 
     def retrieve(self, pk_or_id):
 
