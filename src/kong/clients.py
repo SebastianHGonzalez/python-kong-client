@@ -28,6 +28,10 @@ class KongAbstractClient(RestClient):
     def path(self):
         pass
 
+    @abstractmethod
+    def _allowed_query_params(self):
+        pass
+
     def _send_create(self, data):
         response = self.session.post(self.endpoint, data=data)
 
@@ -115,6 +119,28 @@ class KongAbstractClient(RestClient):
 
         return self._send_retrieve(name_or_id)
 
+    def list(self, size=10, **kwargs):
+
+        query_params = {}
+        for k, v in kwargs.items():
+            if k in self._allowed_query_params:
+                query_params[k] = v
+            else:
+                raise KeyError('invalid query parameter: %s' % k)
+
+        def generator():
+            offset = None
+            while True:
+                offset, cached, _ = self._send_list(size, offset, **query_params)
+
+                while cached:
+                    yield cached.pop()
+
+                if offset is None:
+                    break
+
+        return generator()
+
 
 class ApiAdminClient(KongAbstractClient):
 
@@ -171,28 +197,6 @@ class ApiAdminClient(KongAbstractClient):
 
         return self._send_update(data['name'], data)
 
-    def list(self, size=10, **kwargs):
-
-        query_params = {}
-        for k, v in kwargs.items():
-            if k in self._allowed_query_params:
-                query_params[k] = v
-            else:
-                raise KeyError('invalid query parameter: %s' % k)
-
-        def generator():
-            offset = None
-            while True:
-                offset, cached, _ = self._send_list(size, offset, **query_params)
-
-                while cached:
-                    yield cached.pop()
-
-                if offset is None:
-                    break
-
-        return generator()
-
     def count(self):
         return self._send_list(0)[2]
 
@@ -216,6 +220,10 @@ class ConsumerAdminClient(KongAbstractClient):
     @property
     def path(self):
         return 'consumers/'
+
+    @property
+    def _allowed_query_params(self):
+        return ['id', 'custom_id', 'username']
 
     def create(self, username=None, custom_id=None):
         if not username and not custom_id:
