@@ -303,3 +303,14 @@ class PluginAdminClient(KongAbstractClient):
             endpoint = self.url + 'apis/' + api_pk + '/'
 
         return self._send_delete(plugin_id, endpoint=endpoint)
+
+    def retrieve_enabled(self):
+        return self._send_retrieve_enabled()
+
+    def _send_retrieve_enabled(self):
+        response = self.session.get(self.endpoint + 'enabled/')
+
+        if response.status_code != 200:
+            raise Exception(response.content)
+
+        return response.json()["enabled_plugins"]
