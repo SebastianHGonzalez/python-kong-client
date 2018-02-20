@@ -101,8 +101,9 @@ class KongAbstractClient(RestClient):
 
         return offset, elements, response['total']
 
-    def _send_retrieve(self, name_or_id):
-        url = self.endpoint + name_or_id
+    def _send_retrieve(self, name_or_id, endpoint=None):
+        endpoint = endpoint or self.endpoint
+        url = endpoint + name_or_id
         response = self.session.get(url)
 
         if response.status_code == 404:
@@ -305,12 +306,7 @@ class PluginAdminClient(KongAbstractClient):
         return self._send_delete(plugin_id, endpoint=endpoint)
 
     def retrieve_enabled(self):
-        return self._send_retrieve_enabled()
+        return self._send_retrieve('enabled/')["enabled_plugins"]
 
-    def _send_retrieve_enabled(self):
-        response = self.session.get(self.endpoint + 'enabled/')
-
-        if response.status_code != 200:
-            raise Exception(response.content)
-
-        return response.json()["enabled_plugins"]
+    def retrieve_schema(self, plugin_name):
+        return self._send_retrieve('schema/' + plugin_name)
