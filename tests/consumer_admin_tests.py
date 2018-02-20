@@ -28,6 +28,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         self.session_mock.post.return_value.status_code = 201
         self.session_mock.get.return_value.status_code = 200
+        self.session_mock.patch.return_value.status_code = 200
 
         self.session_mock.post.return_value.json = self.json
 
@@ -133,3 +134,25 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
                                lambda: self.consumer_admin_client.list(**invalid_query))
+
+    def test_update_consumer(self):
+        # Setup
+        new_username = self.faker.user_name()
+        new_custom_id = self.faker.uuid4()
+        data = {'username': new_username,
+                'custom_id': new_custom_id}
+
+        # Exercise
+        self.consumer_admin_client.update(self.consumer_username, **data)
+
+        # Verify
+        self.session_mock.patch.assert_called_once_with(self.consumer_endpoint + self.consumer_username,
+                                                        data=data)
+
+    def test_update_consumer_w_invalid_params(self):
+        # Setup
+        data = {'invalid_field': 'invalid_value'}
+
+        # Verify
+        self.assertRaisesRegex(KeyError, 'invalid_field',
+                               lambda: self.consumer_admin_client.update(self.consumer_username, **data))
