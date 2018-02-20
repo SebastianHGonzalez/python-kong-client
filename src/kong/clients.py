@@ -165,6 +165,9 @@ class KongAbstractClient(RestClient):
 
         return self._send_update(pk_or_id, query_params)
 
+    def update_or_create(self, data):
+        return self._send_update_or_create(data)
+
     def delete(self, pk_or_id):
         if not isinstance(pk_or_id, str):
             raise TypeError("expected str but got: %s" % type(pk_or_id))
@@ -231,7 +234,7 @@ class ApiAdminClient(KongAbstractClient):
         if not isinstance(api_data, ApiData):
             raise TypeError('expected ApiData instance but got: %s' % type(api_data))
 
-        data = self._send_update_or_create(api_data.raw())
+        data = super(ApiAdminClient, self).update_or_create(api_data.raw())
 
         return self.__api_data_from_response(data)
 
@@ -261,6 +264,3 @@ class ConsumerAdminClient(KongAbstractClient):
             consumer_data['custom_id'] = custom_id
 
         return self._send_create(consumer_data)
-
-    def update_or_create(self, data):
-        return self._send_update_or_create(data)
