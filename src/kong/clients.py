@@ -36,8 +36,11 @@ class KongAbstractClient(RestClient):
     def _allowed_update_params(self):
         pass
 
-    def _send_create(self, data):
-        response = self.session.post(self.endpoint, data=data)
+    def _send_create(self, data, endpoint=None):
+        if endpoint is None:
+            endpoint = self.endpoint
+
+        response = self.session.post(endpoint, data=data)
 
         if response.status_code == 409:
             raise NameError(response.content)
@@ -264,3 +267,27 @@ class ConsumerAdminClient(KongAbstractClient):
             consumer_data['custom_id'] = custom_id
 
         return self._send_create(consumer_data)
+
+
+class PluginAdminClient(KongAbstractClient):
+
+    @property
+    def path(self):
+        return 'plugins/'
+
+    def create(self, plugin_name, consumer_id=None, api_name_or_id=None, config=None):
+        data = {'name': plugin_name}
+
+        if consumer_id is not None:
+            data['consumer_id'] = consumer_id
+
+        if api_name_or_id is not None:
+            api_plugins_endpoint = self.url + 'apis/' + api_name_or_id + '/' + self.path
+        else:
+            api_plugins_endpoint = None
+
+        if config is not None:
+            for k, val in config.items():
+                data['config.' + k] = val
+
+        return self._send_create(data, api_plugins_endpoint)
