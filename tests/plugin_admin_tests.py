@@ -149,3 +149,13 @@ class PluginAdminTest(unittest.TestCase):
         # Verify
         expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/' + self.plugin_id
         self.session_mock.delete.assert_called_once_with(expected_url)
+
+    def test_retrieve_enabled_plugins(self):
+        # Setup
+        self.session_mock.get.return_value.json = lambda: {"enabled_plugins": []}
+
+        # Exercise
+        self.plugin_admin_client.retrieve_enabled()
+
+        # Verify
+        self.session_mock.get.assert_called_once_with(self.plugins_endpoint + 'enabled/')
