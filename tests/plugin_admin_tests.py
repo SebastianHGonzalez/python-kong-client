@@ -155,7 +155,27 @@ class PluginAdminTest(unittest.TestCase):
         self.session_mock.get.return_value.json = lambda: {"enabled_plugins": []}
 
         # Exercise
-        self.plugin_admin_client.retrieve_enabled()
+        retrieved = self.plugin_admin_client.retrieve_enabled()
 
         # Verify
         self.session_mock.get.assert_called_once_with(self.plugins_endpoint + 'enabled/')
+        self.assertEqual(retrieved, [])
+
+    def test_retrieve_schema(self):
+        # Setup
+        json = {"fields":
+                {"hide_credentials":
+                 {"default": False,
+                  "type": "boolean"},
+                 "key_names":
+                 {"default": "function",
+                  "required": True,
+                  "type": "array"}}}
+        self.session_mock.get.return_value.json.return_value = json
+
+        # Exercise
+        retrieved = self.plugin_admin_client.retrieve_schema(self.plugin_name)
+
+        # Verify
+        self.session_mock.get.assert_called_once_with(self.plugins_endpoint + 'schema/' + self.plugin_name)
+        self.assertEquals(retrieved, json)
