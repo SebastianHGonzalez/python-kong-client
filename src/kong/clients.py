@@ -66,10 +66,11 @@ class KongAbstractClient(RestClient):
 
         return response.json()
 
-    def _send_list(self, size=10, offset=None):
+    def _send_list(self, size=10, offset=None, **kwargs):
+        data = {**{'offset': offset, 'size': size}, **kwargs}
+
         response = self.session.get(self.endpoint,
-                                    data={'offset': offset,
-                                          'size': size})
+                                    data=data)
 
         if response.status_code != 200:
             raise Exception(response.content)
@@ -114,7 +115,12 @@ class KongAbstractClient(RestClient):
 
         return self._send_retrieve(name_or_id)
 
+
 class ApiAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_query_params(self):
+        return ['id', 'name', 'upstream_url', 'retries']
 
     @property
     def path(self):
@@ -165,11 +171,19 @@ class ApiAdminClient(KongAbstractClient):
 
         return self._send_update(data['name'], data)
 
-    def list(self, size=10):
+    def list(self, size=10, **kwargs):
+
+        query_params = {}
+        for k, v in kwargs.items():
+            if k in self._allowed_query_params:
+                query_params[k] = v
+            else:
+                raise KeyError('invalid query parameter: %s' % k)
+
         def generator():
             offset = None
             while True:
-                offset, cached, _ = self._send_list(size, offset)
+                offset, cached, _ = self._send_list(size, offset, **query_params)
 
                 while cached:
                     yield cached.pop()
