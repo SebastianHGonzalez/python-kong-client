@@ -29,6 +29,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.session_mock.post.return_value.status_code = 201
         self.session_mock.get.return_value.status_code = 200
         self.session_mock.patch.return_value.status_code = 200
+        self.session_mock.delete.return_value.status_code = 204
 
         self.session_mock.post.return_value.json = self.json
 
@@ -156,3 +157,18 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
                                lambda: self.consumer_admin_client.update(self.consumer_username, **data))
+
+    def test_delete_consumer(self):
+        # Exercise
+        self.consumer_admin_client.delete(self.consumer_username)
+
+        # Verify
+        self.session_mock.delete.assert_called_once_with(self.consumer_endpoint + self.consumer_username)
+
+    def test_delete_w_invalid_value(self):
+        # Setup
+        invalid_value = self.faker.random_int()
+
+        # Verify
+        self.assertRaisesRegex(TypeError, 'str',
+                               lambda: self.consumer_admin_client.delete(invalid_value))
