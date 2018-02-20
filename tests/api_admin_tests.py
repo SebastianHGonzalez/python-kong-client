@@ -136,21 +136,6 @@ class ApiAdminClientTest(unittest.TestCase):
         api_endpoint = self.apis_endpoint + self.api_kong_id
         self.session_mock.delete.assert_called_once_with(api_endpoint)
 
-    def test_api_admin_delete_by_api_data(self):
-        """
-            Test: ApiAdmin.delete(api_data) deletes it from kong server
-        """
-        # Setup
-        api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)
-
-        # Exercise
-        self.api_admin_client.delete(api_data)
-
-        # Verify
-        expected_data = {}
-        api_endpoint = self.apis_endpoint + self.api_name
-        self.session_mock.delete.assert_called_once_with(api_endpoint)
-
     def test_api_admin_update(self):
         # Setup
         api_data = self.api_admin_client.create(self.api_name, self.api_upstream_url, uris=self.api_uris)

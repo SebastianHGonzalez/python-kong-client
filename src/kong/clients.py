@@ -162,6 +162,12 @@ class KongAbstractClient(RestClient):
 
         return self._send_update(pk_or_id, query_params)
 
+    def delete(self, pk_or_id):
+        if not isinstance(pk_or_id, str):
+            raise TypeError("expected str but got: %s" % type(pk_or_id))
+
+        return self._send_delete(pk_or_id)
+
 
 class ApiAdminClient(KongAbstractClient):
 
@@ -208,16 +214,6 @@ class ApiAdminClient(KongAbstractClient):
             if k in ApiData.allowed_parameters():
                 d[k] = v
         return ApiData(**d)
-
-    def delete(self, data):
-        if isinstance(data, ApiData):
-            name_or_id = data['name']
-        elif isinstance(data, str):
-            name_or_id = data
-        else:
-            raise TypeError("must provide ApiData instance or str")
-
-        return self._send_delete(name_or_id)
 
     def count(self):
         return self._send_list(0)[2]
