@@ -191,6 +191,33 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertEqual(amount, actual_amount)
 
+    def test_api_admin_list_w_parameters(self):
+        # Setup
+        self.session_mock.get.return_value.json = lambda: {'data': [self.api_data], 'total': 1}
+
+        # Exercise
+        generator = self.api_admin_client.list(id=self.api_kong_id,
+                                               name=self.api_name,
+                                               upstream_url=self.api_upstream_url)
+
+        generator.__next__()
+
+        # Verify
+        expected_data = {'offset': None,
+                         'size': 10,
+                         'id': self.api_kong_id,
+                         'name': self.api_name,
+                         'upstream_url': self.api_upstream_url}
+        self.session_mock.get.assert_called_once_with(self.apis_endpoint, data=expected_data)
+
+    def test_api_admin_list_w_invalid_params(self):
+        # Setup
+        invalid_query = {'invalid_field': 'invalid_value'}
+
+        # Verify
+        self.assertRaisesRegex(KeyError, 'invalid_field',
+                               lambda: self.api_admin_client.list(**invalid_query))
+
     def test_api_admin_count(self):
         """
             Test: ApiAdmin.count() returns the number of created apis
@@ -214,7 +241,6 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertEqual(amount, actual_amount)
 
-    # TODO: test un happy paths (bad requests and responses)
     def test_create_bad_request(self):
         # Setup
         self.session_mock.post.return_value.status_code = 409
