@@ -13,6 +13,12 @@ class ApiAdminClientTest(unittest.TestCase):
         self.consumer_username = self.faker.user_name()
         self.consumer_custom_id = self.faker.uuid4()
         self.consumer_id = self.faker.uuid4()
+        self.consumer_created_at = self.faker.random_int()
+
+        self.consumer_data = {'id': self.consumer_id,
+                              'username': self.consumer_username,
+                              'custom_id': self.consumer_custom_id,
+                              'created_at': self.consumer_created_at}
 
         self.session_mock = MagicMock()
 
@@ -89,3 +95,41 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.get.asser_called_once_with(self.consumer_endpoint + self.consumer_username)
+
+    def test_list_consumers(self):
+        # Setup
+        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.consumer_data]}
+        generator = self.consumer_admin_client.list()
+
+        # Exercise
+        generator.__next__()
+
+        # Verify
+        expected_data = {'offset': None, 'size': 10}
+        self.session_mock.get.asser_called_once_with(self.consumer_endpoint, data=expected_data)
+
+    def test_list_consumers_w_params(self):
+        # Setup
+        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.consumer_data]}
+        generator = self.consumer_admin_client.list(id=self.consumer_id,
+                                                    username=self.consumer_username,
+                                                    custom_id=self.consumer_custom_id)
+
+        # Exercise
+        generator.__next__()
+
+        # Verify
+        expected_data = {'offset': None,
+                         'size': 10,
+                         'id': self.consumer_id,
+                         'username': self.consumer_username,
+                         'custom_id': self.consumer_custom_id}
+        self.session_mock.get.asser_called_once_with(self.consumer_endpoint, data=expected_data)
+
+    def test_list_consumers_w_invalid_params(self):
+        # Setup
+        invalid_query = {'invalid_field': 'invalid_value'}
+
+        # Verify
+        self.assertRaisesRegex(KeyError, 'invalid_field',
+                               lambda: self.consumer_admin_client.list(**invalid_query))
