@@ -305,3 +305,11 @@ class PluginAdminClient(KongAbstractClient):
         data = self._add_config_to_data(data, config)
 
         return self._send_update(pk_or_id, data, endpoint=endpoint)
+
+
+class KongAdminClient:
+
+    def __init__(self, kong_admin_url, session=requests.session()):
+        self.apis = ApiAdminClient(kong_admin_url, session)
+        self.consumers = ConsumerAdminClient(kong_admin_url, session)
+        self.plugins = PluginAdminClient(kong_admin_url, session)
