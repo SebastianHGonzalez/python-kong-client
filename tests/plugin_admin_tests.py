@@ -147,7 +147,7 @@ class PluginAdminTest(unittest.TestCase):
         self.plugin_admin_client.delete(self.plugin_id, api_pk=self.api_name_or_id)
 
         # Verify
-        expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/' + self.plugin_id
+        expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/plugins/' + self.plugin_id
         self.session_mock.delete.assert_called_once_with(expected_url)
 
     def test_retrieve_enabled_plugins(self):

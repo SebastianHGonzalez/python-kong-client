@@ -114,17 +114,6 @@ class KongAbstractClient(RestClient):
 
         return response.json()
 
-    def _send_update_or_create(self, data):
-        response = self.session.put(self.endpoint, data=data)
-
-        if response.status_code == 409:
-            raise NameError(response.content)
-
-        if response.status_code not in [200, 201]:
-            raise Exception(response.content)
-
-        return response.json()
-
     @staticmethod
     def _validate_params(query_params, allowed_params):
         validated_params = {}
@@ -172,9 +161,6 @@ class KongAbstractClient(RestClient):
         query_params = self._validate_update_params(kwargs)
 
         return self._send_update(pk_or_id, query_params)
-
-    def update_or_create(self, data):
-        return self._send_update_or_create(data)
 
     def delete(self, pk_or_id):
         if not isinstance(pk_or_id, str):
@@ -235,14 +221,6 @@ class ApiAdminClient(KongAbstractClient):
 
         return self.__api_data_from_response(data)
 
-    def update_or_create(self, api_data):
-        if not isinstance(api_data, ApiData):
-            raise TypeError('expected ApiData instance but got: %s' % type(api_data))
-
-        data = super(ApiAdminClient, self).update_or_create(api_data.raw())
-
-        return self.__api_data_from_response(data)
-
 
 class ConsumerAdminClient(KongAbstractClient):
 
@@ -288,25 +266,25 @@ class PluginAdminClient(KongAbstractClient):
             data['consumer_id'] = consumer_id
 
         if api_name_or_id is not None:
-            api_plugins_endpoint = self.url + 'apis/' + api_name_or_id + '/' + self.path
+            endpoint = self.url + 'apis/' + api_name_or_id + '/' + self.path
         else:
-            api_plugins_endpoint = None
+            endpoint = None
 
         if config is not None:
             for k, val in config.items():
                 data['config.' + k] = val
 
-        return self._send_create(data, api_plugins_endpoint)
+        return self._send_create(data, endpoint=endpoint)
 
     def delete(self, plugin_id, api_pk=None):
         endpoint = None
         if api_pk is not None:
-            endpoint = self.url + 'apis/' + api_pk + '/'
+            endpoint = self.url + 'apis/' + api_pk + '/' + self.path
 
         return self._send_delete(plugin_id, endpoint=endpoint)
 
     def retrieve_enabled(self):
-        return self._send_retrieve('enabled/')["enabled_plugins"]
+        return self.retrieve('enabled/')["enabled_plugins"]
 
     def retrieve_schema(self, plugin_name):
-        return self._send_retrieve('schema/' + plugin_name)
+        return self.retrieve('schema/' + plugin_name)

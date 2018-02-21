@@ -324,27 +324,3 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(NameError, r'Not found',
                                lambda: self.api_admin_client.retrieve(self.api_name))
-
-    def test_update_or_create_non_created_api(self):
-        # Setup
-        self.session_mock.put.return_value.status_code = 201
-
-        # Exercise
-        self.api_admin_client.update_or_create(self.api_data)
-
-        # Verify
-        expected_data = self.api_data.raw()
-        self.session_mock.put.assert_called_once_with(self.apis_endpoint, data=expected_data)
-
-    def test_update_or_create_created_api(self):
-        # Setup
-        self.session_mock.put.return_value.status_code = 200
-
-        api = self.api_admin_client.create(self.api_data)
-
-        # Exercise
-        self.api_admin_client.update_or_create(api)
-
-        # Verify
-        expected_data = api.raw()
-        self.session_mock.put.assert_called_once_with(self.apis_endpoint, data=expected_data)
