@@ -21,16 +21,10 @@ class ApiDataProvider(BaseProvider):
             uris.append(self.api_path())
         return uris
 
-    def kong_id(self, grouping=(8, 4, 4, 4, 12),
-                valid_elements=tuple(string.ascii_lowercase + string.digits)):
+    def kong_id(self):
         """
             Generates a random kong_id
             Example: "14656344-9e38-4315-8ae2-c23551ea3b9d"
         :return:
         """
-        chars = []
-        for group in grouping:
-            chars += self.random_sample(elements=valid_elements, length=group)
-            chars += "-"
-        chars.pop()
-        return "".join(chars)
+        return self.generator.uuid4()
