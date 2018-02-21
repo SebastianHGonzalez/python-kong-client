@@ -32,10 +32,6 @@ class KongAbstractClient(RestClient):
     def _allowed_query_params(self):
         pass
 
-    @abstractmethod
-    def _allowed_update_params(self):
-        pass
-
     def _send_create(self, data, endpoint=None):
 
         endpoint = endpoint or self.endpoint
@@ -258,6 +254,10 @@ class PluginAdminClient(KongAbstractClient):
     def _allowed_query_params(self):
         return 'id', 'name', 'api_id', 'consumer_id'
 
+    @property
+    def _allowed_update_params(self):
+        return 'name', 'consumer_id'
+
     def _make_api_plugin_endpoint(self, api_pk):
         return self.url + 'apis/' + api_pk + '/' + self.path
 
@@ -298,13 +298,14 @@ class PluginAdminClient(KongAbstractClient):
         return self.retrieve('schema/' + plugin_name)
 
     def update(self, pk_or_id, api_pk=None, config=None, **kwargs):
-        data = kwargs
+
+        query_params = self._validate_update_params(kwargs)
 
         endpoint = self._resolve_endpoint(api_pk)
 
-        data = self._add_config_to_data(data, config)
+        query_params = self._add_config_to_data(query_params, config)
 
-        return self._send_update(pk_or_id, data, endpoint=endpoint)
+        return self._send_update(pk_or_id, query_params, endpoint=endpoint)
 
 
 class KongAdminClient:
