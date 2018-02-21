@@ -1,7 +1,7 @@
 import requests
 from abc import abstractmethod
 
-from .structures import ApiData
+from structures import ApiData
 
 
 class RestClient:

@@ -2,10 +2,10 @@ import unittest
 from unittest.mock import MagicMock
 from faker import Faker
 
-from src.kong.providers import ApiDataProvider
+from tests.providers import ApiDataProvider
 
-from src.kong.clients import ApiAdminClient
-from src.kong.structures import ApiData
+from clients import ApiAdminClient
+from structures import ApiData
 
 
 class ApiAdminClientTest(unittest.TestCase):
