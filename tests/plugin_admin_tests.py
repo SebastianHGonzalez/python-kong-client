@@ -31,6 +31,7 @@ class PluginAdminTest(unittest.TestCase):
         self.session_mock.post.return_value.status_code = 201
         self.session_mock.get.return_value.status_code = 200
         self.session_mock.delete.return_value.status_code = 204
+        self.session_mock.patch.return_value.status_code = 200
 
     def test_create_plugin_for_all_apis_and_consumers(self):
 
@@ -127,9 +128,6 @@ class PluginAdminTest(unittest.TestCase):
                                                             'consumer_id': self.consumer_id})
 
     def test_list_plugins_w_invalid_parameters(self):
-        # Setup
-        self.session_mock.get.return_value.json.return_value = {'total': 1, 'data': [self.plugin_json]}
-
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
                                lambda: self.plugin_admin_client.list(invalid_field='invalid_value'))
@@ -179,3 +177,53 @@ class PluginAdminTest(unittest.TestCase):
         # Verify
         self.session_mock.get.assert_called_once_with(self.plugins_endpoint + 'schema/' + self.plugin_name)
         self.assertEquals(retrieved, json)
+
+    def test_update_plugin(self):
+        # Setup
+        data = {'name': self.plugin_name,
+                'consumer_id': self.consumer_id}
+
+        config = {'setting': 'value'}
+
+        # Exercise
+        self.plugin_admin_client.update(self.plugin_id, api_pk=self.api_name_or_id, config=config, **data)
+
+        # Verify
+        expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/plugins/' + self.plugin_id
+        expected_data = {'name': self.plugin_name,
+                         'consumer_id': self.consumer_id,
+                         'config.setting': 'value'}
+
+        self.session_mock.patch.assert_called_once_with(expected_url, data=expected_data)
+
+    def test_update_plugin_wo_api_pk(self):
+        # Setup
+        data = {'name': self.plugin_name,
+                'consumer_id': self.consumer_id}
+
+        config = {'setting': 'value'}
+
+        # Exercise
+        self.plugin_admin_client.update(self.plugin_id, config=config, **data)
+
+        # Verify
+        expected_url = self.plugins_endpoint + self.plugin_id
+        expected_data = {'name': self.plugin_name,
+                         'consumer_id': self.consumer_id,
+                         'config.setting': 'value'}
+
+        self.session_mock.patch.assert_called_once_with(expected_url, data=expected_data)
+
+    def test_update_plugin_wo_config(self):
+        # Setup
+        data = {'name': self.plugin_name,
+                'consumer_id': self.consumer_id}
+
+        # Exercise
+        self.plugin_admin_client.update(self.plugin_id, **data)
+
+        # Verify
+        expected_url = self.plugins_endpoint + self.plugin_id
+        expected_data = data
+
+        self.session_mock.patch.assert_called_once_with(expected_url, data=expected_data)
