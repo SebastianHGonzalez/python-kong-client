@@ -47,10 +47,10 @@ class ApiAdminClientTest(unittest.TestCase):
         self.session_mock = MagicMock()
         self.requests_mock.session.return_value = self.session_mock
 
-        add_id = lambda: {**self.api_data, **{'id': self.api_kong_id}}
+        data_w_id = {**self.api_data, **{'id': self.api_kong_id}}
 
-        self.session_mock.post.return_value.json = add_id
-        self.session_mock.put.return_value.json = add_id
+        self.session_mock.post.return_value.json.return_value = data_w_id
+        self.session_mock.put.return_value.json.return_value = data_w_id
 
         self.session_mock.get.return_value.status_code = 200
         self.session_mock.post.return_value.status_code = 201
@@ -164,8 +164,8 @@ class ApiAdminClientTest(unittest.TestCase):
                                                     uris=self.faker.api_uris())
             apis.append(api_data)
 
-        self.session_mock.get.return_value.json = lambda: {'total': amount,
-                                                            'data': apis}
+        self.session_mock.get.return_value.json.return_value = {'total': amount,
+                                                                'data': apis}
 
         # Exercise
         actual_amount = len(list(self.api_admin_client.list()))
@@ -175,7 +175,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_api_admin_list_w_parameters(self):
         # Setup
-        self.session_mock.get.return_value.json = lambda: {'data': [self.api_data], 'total': 1}
+        self.session_mock.get.return_value.json.return_value = {'data': [self.api_data], 'total': 1}
 
         # Exercise
         generator = self.api_admin_client.list(id=self.api_kong_id,
@@ -214,8 +214,8 @@ class ApiAdminClientTest(unittest.TestCase):
                                                     uris=self.faker.api_uris())
             apis.append(api_data)
 
-        self.session_mock.get.return_value.json = lambda: {'total': amount,
-                                                            'data': apis}
+        self.session_mock.get.return_value.json.return_value = {'total': amount,
+                                                                'data': apis}
 
         # Exercise
         actual_amount = self.api_admin_client.count()
@@ -308,7 +308,7 @@ class ApiAdminClientTest(unittest.TestCase):
     def test_retrieve_api(self):
         # Setup
         self.session_mock.get.return_value.status_code = 200
-        self.session_mock.get.return_value.json = lambda: dict(self.api_data)
+        self.session_mock.get.return_value.json.return_value = dict(self.api_data)
 
         # Exercise
         retrieved = self.api_admin_client.retrieve(self.api_name)

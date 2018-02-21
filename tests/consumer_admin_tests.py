@@ -22,16 +22,16 @@ class ApiAdminClientTest(unittest.TestCase):
 
         self.session_mock = MagicMock()
 
-        self.json = lambda: {'id': self.consumer_id,
-                             'username': self.consumer_username,
-                             'custom_id': self.consumer_custom_id}
+        self.json = {'id': self.consumer_id,
+                     'username': self.consumer_username,
+                     'custom_id': self.consumer_custom_id}
 
         self.session_mock.post.return_value.status_code = 201
         self.session_mock.get.return_value.status_code = 200
         self.session_mock.patch.return_value.status_code = 200
         self.session_mock.delete.return_value.status_code = 204
 
-        self.session_mock.post.return_value.json = self.json
+        self.session_mock.post.return_value.json.return_value = self.json
 
         self.requests_mock = MagicMock()
         self.requests_mock.session.return_value = self.session_mock
@@ -100,7 +100,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_list_consumers(self):
         # Setup
-        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.consumer_data]}
+        self.session_mock.get.return_value.json.return_value = {'total': 1, 'data': [self.consumer_data]}
         generator = self.consumer_admin_client.list()
 
         # Exercise
@@ -112,7 +112,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_list_consumers_w_params(self):
         # Setup
-        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.consumer_data]}
+        self.session_mock.get.return_value.json.return_value = {'total': 1, 'data': [self.consumer_data]}
         generator = self.consumer_admin_client.list(id=self.consumer_id,
                                                     username=self.consumer_username,
                                                     custom_id=self.consumer_custom_id)
@@ -176,7 +176,7 @@ class ApiAdminClientTest(unittest.TestCase):
     def test_update_or_create_creates_consumer(self):
         # Setup
         self.session_mock.put.return_value.status_code = 201
-        self.session_mock.put.return_value.json = lambda: self.consumer_data
+        self.session_mock.put.return_value.json.return_value = self.consumer_data
 
         data = {'username': self.consumer_username,
                 'custom_id': self.consumer_custom_id}
@@ -204,7 +204,7 @@ class ApiAdminClientTest(unittest.TestCase):
     def test_update_or_create_updates_consumer(self):
         # Setup
         self.session_mock.put.return_value.status_code = 200
-        self.session_mock.put.return_value.json = lambda: self.consumer_data
+        self.session_mock.put.return_value.json.return_value = self.consumer_data
 
         data = {'id': self.consumer_id,
                 'username': self.consumer_username,

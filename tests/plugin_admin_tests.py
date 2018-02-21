@@ -91,7 +91,7 @@ class PluginAdminTest(unittest.TestCase):
 
     def test_list_plugins(self):
         # Setup
-        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.plugin_json]}
+        self.session_mock.get.return_value.json.return_value = {'total': 1, 'data': [self.plugin_json]}
 
         # Exercise
         generator = self.plugin_admin_client.list()
@@ -128,7 +128,7 @@ class PluginAdminTest(unittest.TestCase):
 
     def test_list_plugins_w_invalid_parameters(self):
         # Setup
-        self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.plugin_json]}
+        self.session_mock.get.return_value.json.return_value = {'total': 1, 'data': [self.plugin_json]}
 
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
@@ -152,7 +152,7 @@ class PluginAdminTest(unittest.TestCase):
 
     def test_retrieve_enabled_plugins(self):
         # Setup
-        self.session_mock.get.return_value.json = lambda: {"enabled_plugins": []}
+        self.session_mock.get.return_value.json.return_value = {"enabled_plugins": []}
 
         # Exercise
         retrieved = self.plugin_admin_client.retrieve_enabled()

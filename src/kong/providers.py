@@ -25,6 +25,7 @@ class ApiDataProvider(BaseProvider):
         """
             Generates a random kong_id
             Example: "14656344-9e38-4315-8ae2-c23551ea3b9d"
-        :return:
+        :return: a kong id
+        :rtype: str
         """
         return self.generator.uuid4()
