@@ -51,8 +51,7 @@ class KongAbstractClient(RestClient):
         return response.json()
 
     def _send_delete(self, name_or_id, endpoint=None):
-        endpoint = endpoint or self.endpoint
-        url = endpoint + name_or_id
+        url = (endpoint or self.endpoint) + name_or_id
         response = self.session.delete(url)
 
         if response.status_code == 404:
@@ -63,8 +62,8 @@ class KongAbstractClient(RestClient):
 
         return response.json()
 
-    def _send_update(self, pk_or_id, data):
-        url = self.endpoint + pk_or_id
+    def _send_update(self, pk_or_id, data, endpoint=None):
+        url = (endpoint or self.endpoint) + pk_or_id
         response = self.session.patch(url, data=data)
 
         if response.status_code == 400:
@@ -259,27 +258,36 @@ class PluginAdminClient(KongAbstractClient):
     def _allowed_query_params(self):
         return 'id', 'name', 'api_id', 'consumer_id'
 
+    def _make_api_plugin_endpoint(self, api_pk):
+        return self.url + 'apis/' + api_pk + '/' + self.path
+
+    @staticmethod
+    def _add_config_to_data(data, config):
+        if config is not None:
+            for k, val in config.items():
+                data['config.' + k] = val
+        return data
+
+    def _resolve_endpoint(self, api_pk):
+        endpoint = None
+        if api_pk is not None:
+            endpoint = self._make_api_plugin_endpoint(api_pk)
+        return endpoint
+
     def create(self, plugin_name, consumer_id=None, api_name_or_id=None, config=None):
         data = {'name': plugin_name}
 
         if consumer_id is not None:
             data['consumer_id'] = consumer_id
 
-        if api_name_or_id is not None:
-            endpoint = self.url + 'apis/' + api_name_or_id + '/' + self.path
-        else:
-            endpoint = None
+        endpoint = self._resolve_endpoint(api_name_or_id)
 
-        if config is not None:
-            for k, val in config.items():
-                data['config.' + k] = val
+        data = self._add_config_to_data(data, config)
 
         return self._send_create(data, endpoint=endpoint)
 
     def delete(self, plugin_id, api_pk=None):
-        endpoint = None
-        if api_pk is not None:
-            endpoint = self.url + 'apis/' + api_pk + '/' + self.path
+        endpoint = self._resolve_endpoint(api_pk)
 
         return self._send_delete(plugin_id, endpoint=endpoint)
 
@@ -288,3 +296,12 @@ class PluginAdminClient(KongAbstractClient):
 
     def retrieve_schema(self, plugin_name):
         return self.retrieve('schema/' + plugin_name)
+
+    def update(self, pk_or_id, api_pk=None, config=None, **kwargs):
+        data = kwargs
+
+        endpoint = self._resolve_endpoint(api_pk)
+
+        data = self._add_config_to_data(data, config)
+
+        return self._send_update(pk_or_id, data, endpoint=endpoint)
