@@ -23,6 +23,14 @@ class ApiAdminClient(KongAbstractClient):
     def path(self):
         return 'apis/'
 
+    @staticmethod
+    def __api_data_from_response(data):
+        d = {}
+        for k, v in data.items():
+            if k in ApiData.allowed_parameters():
+                d[k] = v
+        return ApiData(**d)
+
     def create(self, api_name_or_data, upstream_url=None, **kwargs):
 
         if isinstance(api_name_or_data, ApiData):
@@ -39,17 +47,15 @@ class ApiAdminClient(KongAbstractClient):
 
         data = self._send_create(api_data.raw())
         return self.__api_data_from_response(data)
-
-    @staticmethod
-    def __api_data_from_response(data):
-        d = {}
-        for k, v in data.items():
-            if k in ApiData.allowed_parameters():
-                d[k] = v
-        return ApiData(**d)
-
+    
     def retrieve(self, pk_or_id):
+        response = super(ApiAdminClient, self).retrieve(pk_or_id)
+        return self.__api_data_from_response(response)
 
-        data = super(ApiAdminClient, self).retrieve(pk_or_id)
+    def list(self, size=10, **kwargs):
+        return map(self.__api_data_from_response,
+                   super(ApiAdminClient, self).list(size, **kwargs))
 
-        return self.__api_data_from_response(data)
+    def update(self, pk_or_id, **kwargs):
+        response = super(ApiAdminClient, self).update(pk_or_id, **kwargs)
+        return self.__api_data_from_response(response)

@@ -51,6 +51,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         self.session_mock.post.return_value.json.return_value = data_w_id
         self.session_mock.put.return_value.json.return_value = data_w_id
+        self.session_mock.patch.return_value.json.return_value = data_w_id
 
         self.session_mock.get.return_value.status_code = 200
         self.session_mock.post.return_value.status_code = 201
@@ -143,9 +144,11 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Exercise
         api_data.add_uri(new_uri)
-        self.api_admin_client.update(api_data['name'], **api_data.raw())
+        response = self.api_admin_client.update(api_data['name'], **api_data.raw())
 
         # Verify
+        self.assertTrue(isinstance(response, ApiData))
+        self.assertEqual(response, api_data)
         expected_data = api_data.raw()
         api_endpoint = self.apis_endpoint + self.api_name
         self.session_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
@@ -168,9 +171,13 @@ class ApiAdminClientTest(unittest.TestCase):
                                                                 'data': apis}
 
         # Exercise
-        actual_amount = len(list(self.api_admin_client.list()))
+        apis_retrieved = list(self.api_admin_client.list())
+        actual_amount = len(apis_retrieved)
 
         # Verify
+        for api in apis_retrieved:
+            self.assertTrue(isinstance(api, ApiData))
+
         self.assertEqual(amount, actual_amount)
 
     def test_api_admin_list_w_parameters(self):
@@ -314,6 +321,7 @@ class ApiAdminClientTest(unittest.TestCase):
         retrieved = self.api_admin_client.retrieve(self.api_name)
 
         # Verify
+        self.assertTrue(isinstance(retrieved, ApiData))
         self.assertEqual(self.api_data, retrieved)
 
     def test_retrieve_non_created_api(self):
