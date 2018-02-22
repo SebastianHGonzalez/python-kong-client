@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 from faker import Faker
 
-from tests.providers import ApiDataProvider
+from kong.providers import ApiDataProvider
 
 from kong.ApiAdminClient import ApiAdminClient
 from kong.structures import ApiData

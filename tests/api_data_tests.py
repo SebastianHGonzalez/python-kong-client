@@ -1,6 +1,6 @@
 import unittest
 import faker
-from tests.providers import ApiDataProvider
+from kong.providers import ApiDataProvider
 from kong.structures import ApiData
 
 
