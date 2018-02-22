@@ -4,7 +4,7 @@ from faker import Faker
 
 from tests.providers import ApiDataProvider
 
-from clients import ApiAdminClient
+from ApiAdminClient import ApiAdminClient
 from structures import ApiData
 
 

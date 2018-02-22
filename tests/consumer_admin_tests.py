@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 import faker
 
-from clients import ConsumerAdminClient
+from ConsumerAdminClient import ConsumerAdminClient
 
 
 class ApiAdminClientTest(unittest.TestCase):

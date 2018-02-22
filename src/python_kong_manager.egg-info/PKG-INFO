@@ -1,0 +1,15 @@
+Metadata-Version: 1.1
+Name: python-kong-manager
+Version: 0.1
+Summary: A Python client for the Kong API 0.12.x (http://getkong.org/)
+Home-page: UNKNOWN
+Author: Sebastian Gonzalez
+Author-email: sebastian.h.gonzalez@gmail.com
+License: BSD
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Utilities
