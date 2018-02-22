@@ -40,8 +40,6 @@ class KongAbstractClient(RestClient):
         if response.status_code != 204:
             raise Exception(response.content)
 
-        return response.json()
-
     def _send_update(self, pk_or_id, data, endpoint=None):
         url = (endpoint or self.endpoint) + pk_or_id
         response = self.session.patch(url, data=data)

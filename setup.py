@@ -7,7 +7,7 @@ from pip.req import parse_requirements
 
 from setuptools import setup
 
-__version__ = '0.1'
+__version__ = '0.1.1'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
