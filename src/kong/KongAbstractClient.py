@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from RestClient import RestClient
+from kong.RestClient import RestClient
 
 
 class KongAbstractClient(RestClient):

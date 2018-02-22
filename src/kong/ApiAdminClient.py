@@ -1,5 +1,5 @@
-from KongAbstractClient import KongAbstractClient
-from structures import ApiData
+from kong.KongAbstractClient import KongAbstractClient
+from kong.structures import ApiData
 
 
 class ApiAdminClient(KongAbstractClient):

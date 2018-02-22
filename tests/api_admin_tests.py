@@ -4,8 +4,8 @@ from faker import Faker
 
 from tests.providers import ApiDataProvider
 
-from ApiAdminClient import ApiAdminClient
-from structures import ApiData
+from kong.ApiAdminClient import ApiAdminClient
+from kong.structures import ApiData
 
 
 class ApiAdminClientTest(unittest.TestCase):

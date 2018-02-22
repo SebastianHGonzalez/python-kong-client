@@ -1,7 +1,7 @@
 from requests import session as requests_session
-from ApiAdminClient import ApiAdminClient
-from ConsumerAdminClient import ConsumerAdminClient
-from PluginAdminClient import PluginAdminClient
+from kong.ApiAdminClient import ApiAdminClient
+from kong.ConsumerAdminClient import ConsumerAdminClient
+from kong.PluginAdminClient import PluginAdminClient
 
 
 class KongAdminClient:

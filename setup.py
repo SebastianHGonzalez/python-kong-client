@@ -5,7 +5,6 @@ from os.path import join
 
 from pip.req import parse_requirements
 
-from setuptools import find_packages
 from setuptools import setup
 
 __version__ = '0.1'
@@ -32,9 +31,8 @@ setup(
     author='Sebastian Gonzalez',
     author_email='sebastian.h.gonzalez@gmail.com',
     url='',
-    packages=find_packages('src'),
+    packages=['kong'],
     package_dir={'': 'src'},
-    py_modules=['kong_client'],
     include_package_data=True,
     zip_safe=False,
     classifiers=[

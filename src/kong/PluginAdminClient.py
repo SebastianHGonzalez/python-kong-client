@@ -1,4 +1,4 @@
-from KongAbstractClient import KongAbstractClient
+from kong.KongAbstractClient import KongAbstractClient
 
 
 class PluginAdminClient(KongAbstractClient):

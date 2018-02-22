@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import faker
 
-from PluginAdminClient import PluginAdminClient
+from kong.PluginAdminClient import PluginAdminClient
 
 
 class PluginAdminTest(unittest.TestCase):

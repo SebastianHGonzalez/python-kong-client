@@ -1,8 +1,0 @@
-setup.py
-src/kong.py
-src/python_kong_manager.egg-info/PKG-INFO
-src/python_kong_manager.egg-info/SOURCES.txt
-src/python_kong_manager.egg-info/dependency_links.txt
-src/python_kong_manager.egg-info/not-zip-safe
-src/python_kong_manager.egg-info/requires.txt
-src/python_kong_manager.egg-info/top_level.txt
