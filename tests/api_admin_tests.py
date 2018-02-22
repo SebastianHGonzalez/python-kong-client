@@ -62,7 +62,6 @@ class ApiAdminClientTest(unittest.TestCase):
         self.apis_endpoint = self.kong_admin_url + 'apis/'
 
         self.api_admin_client = ApiAdminClient(self.kong_admin_url, session=self.requests_mock.session())
-        #self.api_admin_client = ApiAdminClient('http://localhost:8001/')
 
     def test_api_admin_create(self):
         """

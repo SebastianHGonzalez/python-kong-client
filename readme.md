@@ -1,3 +1,30 @@
+# Python Kong Client
+## Description
+This is a small library to provide [kong](http://getkong.org/) server administration functionality inside your python application
+
+This library is currently in version 0.1 and it was built arround [kong 0.12.x specifications](https://getkong.org/docs/0.12.x/admin-api/)
+
+## Features
+Supported operations for Apis, Consumers and Plugins
+- create
+- delete
+- retrieve
+- update
+- list
+- count
+
+Supported additional operations for Plugins
+- retrieve_enabled
+- retrieve_schema
+
+Not supported
+- update_or_create
+- Information routes (yet)
+- Certificates object routes (yet)
+- SNI object routes (yet)
+- Upstream object routes (yet)
+- Target object routes (yet)
+
 ## Usage
 #### Install
     $ python setup.py install
