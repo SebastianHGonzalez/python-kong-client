@@ -1,6 +1,5 @@
 import io
 import os
-import re
 from os.path import dirname
 from os.path import join
 
@@ -26,17 +25,16 @@ requirements = [str(ir.req) for ir in parse_requirements(os.path.join(BASE_DIR, 
 # requirements_test = [str(ir.req) for ir in parse_requirements('./requirements-test.txt', session=False)]
 
 setup(
-    name='python-kong-manager',
+    name='python-kong-client',
     version=__version__,
     license='BSD',
     description='A Python client for the Kong API 0.12.x (http://getkong.org/)',
-    long_description='%s\n%s' % (read('README.rst'), re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))),
     author='Sebastian Gonzalez',
     author_email='sebastian.h.gonzalez@gmail.com',
     url='',
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    py_modules=['clients.py'],
+    py_modules=['kong_client'],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
