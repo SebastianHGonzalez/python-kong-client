@@ -76,4 +76,3 @@ class ApiDataTests(unittest.TestCase):
                                                upstream_url=self.api_upstream_url,
                                                uris=self.api_uris,
                                                methods=invalid_value))
-

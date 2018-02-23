@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 import faker
 
-from kong.ConsumerAdminClient import ConsumerAdminClient
+from kong.kong_clients import ConsumerAdminClient
 
 
 class ApiAdminClientTest(unittest.TestCase):
@@ -37,7 +37,8 @@ class ApiAdminClientTest(unittest.TestCase):
         self.requests_mock.session.return_value = self.session_mock
 
         self.kong_admin_url = self.faker.url()
-        self.consumer_admin_client = ConsumerAdminClient(self.kong_admin_url, session=self.requests_mock.session())
+        self.consumer_admin_client = ConsumerAdminClient(self.kong_admin_url,
+                                                         _session=self.requests_mock.session())
 
         self.consumer_endpoint = self.kong_admin_url + 'consumers/'
 
@@ -76,7 +77,8 @@ class ApiAdminClientTest(unittest.TestCase):
         # Setup
         self.session_mock.post.return_value.status_code = 409
         self.session_mock.post.return_value.content = {"username":
-                                                       "already exists with value %s" % self.consumer_username}
+                                                       "already exists with value %s"
+                                                       % self.consumer_username}
 
         # Verify
         self.assertRaisesRegex(NameError, r'already exists',
@@ -96,11 +98,13 @@ class ApiAdminClientTest(unittest.TestCase):
         self.consumer_admin_client.retrieve(self.consumer_username)
 
         # Verify
-        self.session_mock.get.asser_called_once_with(self.consumer_endpoint + self.consumer_username)
+        self.session_mock.get\
+            .asser_called_once_with(self.consumer_endpoint + self.consumer_username)
 
     def test_list_consumers(self):
         # Setup
-        self.session_mock.get.return_value.json.return_value = {'total': 1, 'data': [self.consumer_data]}
+        self.session_mock.get.return_value.json\
+            .return_value = {'total': 1, 'data': [self.consumer_data]}
         generator = self.consumer_admin_client.list()
 
         # Exercise
@@ -112,7 +116,8 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_list_consumers_w_params(self):
         # Setup
-        self.session_mock.get.return_value.json.return_value = {'total': 1, 'data': [self.consumer_data]}
+        self.session_mock.get.return_value.json\
+            .return_value = {'total': 1, 'data': [self.consumer_data]}
         generator = self.consumer_admin_client.list(id=self.consumer_id,
                                                     username=self.consumer_username,
                                                     custom_id=self.consumer_custom_id)
@@ -147,8 +152,9 @@ class ApiAdminClientTest(unittest.TestCase):
         self.consumer_admin_client.update(self.consumer_username, **data)
 
         # Verify
-        self.session_mock.patch.assert_called_once_with(self.consumer_endpoint + self.consumer_username,
-                                                        data=data)
+        self.session_mock.patch\
+            .assert_called_once_with(self.consumer_endpoint + self.consumer_username,
+                                     data=data)
 
     def test_update_consumer_w_invalid_params(self):
         # Setup
@@ -156,14 +162,16 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
-                               lambda: self.consumer_admin_client.update(self.consumer_username, **data))
+                               lambda: self.consumer_admin_client
+                               .update(self.consumer_username, **data))
 
     def test_delete_consumer(self):
         # Exercise
         self.consumer_admin_client.delete(self.consumer_username)
 
         # Verify
-        self.session_mock.delete.assert_called_once_with(self.consumer_endpoint + self.consumer_username)
+        self.session_mock.delete\
+            .assert_called_once_with(self.consumer_endpoint + self.consumer_username)
 
     def test_delete_w_invalid_value(self):
         # Setup
