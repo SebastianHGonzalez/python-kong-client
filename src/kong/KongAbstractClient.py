@@ -107,6 +107,9 @@ class KongAbstractClient(RestClient):
     def _validate_update_params(self, params):
         return self._validate_params(params, self._allowed_update_params)
 
+    def create(self, name, **kwargs):
+        return self._send_create({**kwargs, **{'name', name}})
+
     def retrieve(self, pk_or_id):
         if not isinstance(pk_or_id, str):
             raise TypeError("expected str but got %s" % type(pk_or_id))
