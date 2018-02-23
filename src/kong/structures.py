@@ -13,7 +13,7 @@ class ApiData(dict):
                'created_at'
 
     @staticmethod
-    def satisfy_semi_optional_parameters(**kwargs):
+    def satisfy_semi_optional_parameters(**kwargs):  # pylint: disable=invalid-name
         return 'hosts' in kwargs\
                or 'uris' in kwargs\
                or 'methods' in kwargs
@@ -23,17 +23,19 @@ class ApiData(dict):
         return 'name' in kwargs \
                and 'upstream_url' in kwargs
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super(ApiData, self).__init__(*args, **kwargs)
+
         if not self.satisfy_obligatory_parameters(**kwargs):
             raise ValueError('name and upstream_url must be provided to create')
 
         if not self.satisfy_semi_optional_parameters(**kwargs):
             raise ValueError('uris, methods or hosts must be provided to create')
 
-        for k, v in kwargs.items():
-            self.validate(k, v)
+        for k, val in kwargs.items():
+            self.validate(k, val)
 
-            self[k] = v
+            self[k] = val
 
     def validate(self, parameter, value):
         if parameter not in self.allowed_parameters():
