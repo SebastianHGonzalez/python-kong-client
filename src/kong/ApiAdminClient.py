@@ -45,7 +45,7 @@ class ApiAdminClient(KongAbstractClient):
         else:
             raise ValueError("must provide ApiData instance or name to create a api")
 
-        data = self._send_create(api_data.raw())
+        data = self._send_create(api_data)
         return self.__api_data_from_response(data)
     
     def retrieve(self, pk_or_id):

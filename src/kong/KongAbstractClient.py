@@ -16,6 +16,10 @@ class KongAbstractClient(RestClient):
     def _allowed_query_params(self):
         pass
 
+    @abstractmethod
+    def _allowed_update_params(self):
+        pass
+
     def _send_create(self, data, endpoint=None):
 
         endpoint = endpoint or self.endpoint
@@ -91,12 +95,11 @@ class KongAbstractClient(RestClient):
 
         return response.json()
 
-    @staticmethod
-    def _validate_params(query_params, allowed_params):
+    def _validate_params(self, query_params, allowed_params):
         validated_params = {}
         for k, val in query_params.items():
             if k in allowed_params:
-                validated_params[k] = val
+                validated_params[k] = self._stringify_if_list(val)
             else:
                 raise KeyError('invalid query parameter: %s' % k)
         return validated_params
@@ -141,6 +144,14 @@ class KongAbstractClient(RestClient):
         query_params = self._validate_update_params(kwargs)
 
         return self._send_update(pk_or_id, query_params)
+
+    @staticmethod
+    def _stringify_if_list(v):
+        if isinstance(v, list):
+            val = ", ".join(v)
+        else:
+            val = v
+        return val
 
     def delete(self, pk_or_id):
         if not isinstance(pk_or_id, str):
