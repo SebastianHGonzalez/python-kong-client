@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import faker
 
-from kong.PluginAdminClient import PluginAdminClient
+from kong.kong_clients import PluginAdminClient
 
 
 class PluginAdminTest(unittest.TestCase):
@@ -26,7 +26,7 @@ class PluginAdminTest(unittest.TestCase):
         self.kong_url = self.faker.url()
         self.plugins_endpoint = self.kong_url + 'plugins/'
         self.session_mock = MagicMock()
-        self.plugin_admin_client = PluginAdminClient(self.kong_url, session=self.session_mock)
+        self.plugin_admin_client = PluginAdminClient(self.kong_url, _session=self.session_mock)
 
         self.session_mock.post.return_value.status_code = 201
         self.session_mock.get.return_value.status_code = 200
@@ -92,7 +92,8 @@ class PluginAdminTest(unittest.TestCase):
 
     def test_list_plugins(self):
         # Setup
-        self.session_mock.get.return_value.json.return_value = {'total': 1, 'data': [self.plugin_json]}
+        self.session_mock.get.return_value.json\
+            .return_value = {'total': 1, 'data': [self.plugin_json]}
 
         # Exercise
         generator = self.plugin_admin_client.list()
@@ -175,7 +176,8 @@ class PluginAdminTest(unittest.TestCase):
         retrieved = self.plugin_admin_client.retrieve_schema(self.plugin_name)
 
         # Verify
-        self.session_mock.get.assert_called_once_with(self.plugins_endpoint + 'schema/' + self.plugin_name)
+        self.session_mock.get\
+            .assert_called_once_with(self.plugins_endpoint + 'schema/' + self.plugin_name)
         self.assertEquals(retrieved, json)
 
     def test_update_plugin(self):
@@ -186,7 +188,9 @@ class PluginAdminTest(unittest.TestCase):
         config = {'setting': 'value'}
 
         # Exercise
-        self.plugin_admin_client.update(self.plugin_id, api_pk=self.api_name_or_id, config=config, **data)
+        self.plugin_admin_client.update(self.plugin_id,
+                                        api_pk=self.api_name_or_id,
+                                        config=config, **data)
 
         # Verify
         expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/plugins/' + self.plugin_id
