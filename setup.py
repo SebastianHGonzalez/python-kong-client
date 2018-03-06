@@ -32,7 +32,6 @@ setup(
     author_email='sebastian.h.gonzalez@gmail.com',
     url='',
     packages=['kong'],
-    package_dir={'': 'src'},
     include_package_data=True,
     zip_safe=False,
     classifiers=[
