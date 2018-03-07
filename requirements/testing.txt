@@ -1,5 +1,5 @@
 -r base.txt
 flake8==3.5.0 # This covers pycodestyle
-pylint>=1.7.6
+pylint==1.8.2
 pytest==3.4.0
 Faker==0.8.10
