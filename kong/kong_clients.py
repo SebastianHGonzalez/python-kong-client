@@ -48,7 +48,9 @@ class KongAbstractClient(RestClient):
 
         endpoint = endpoint or self.endpoint
 
-        response = self.session.post(endpoint, data=data)
+        cleaned_data = self._clean(data)
+
+        response = self.session.post(endpoint, data=cleaned_data)
 
         if response.status_code == 409:
             raise NameError(response.content)
@@ -57,6 +59,16 @@ class KongAbstractClient(RestClient):
             raise Exception(response.content)
 
         return response.json()
+
+    def _clean(self, data):
+        cleaned_data = {}
+        for key, value in data.items():
+            if isinstance(value, (list, str)) and not value:
+                continue
+            if value is None:
+                continue
+            cleaned_data[key] = value
+        return cleaned_data
 
     def _send_delete(self, name_or_id, endpoint=None):
         url = (endpoint or self.endpoint) + name_or_id
@@ -70,7 +82,10 @@ class KongAbstractClient(RestClient):
 
     def _send_update(self, pk_or_id, data, endpoint=None):
         url = (endpoint or self.endpoint) + pk_or_id
-        response = self.session.patch(url, data=data)
+
+        cleaned_data = self._clean(data)
+
+        response = self.session.patch(url, data=cleaned_data)
 
         if response.status_code == 400:
             raise KeyError(response.content)
