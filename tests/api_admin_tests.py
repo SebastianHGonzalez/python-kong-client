@@ -352,3 +352,19 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
                                                         data={'hosts': 'host1, host2'})
+
+    def test_update_api_removing_hosts(self):
+        # Exercise
+        self.api_admin_client.update(self.api_name, hosts=[])
+
+        # Verify
+        self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
+                                                        data={'hosts': ''})
+
+    def test_update_api_removing_uris(self):
+        # Exercise
+        self.api_admin_client.update(self.api_name, uris=[])
+
+        # Verify
+        self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
+                                                        data={'uris': ''})
