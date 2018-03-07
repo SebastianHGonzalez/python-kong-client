@@ -7,7 +7,7 @@ from pip.req import parse_requirements
 
 from setuptools import setup
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -32,7 +32,6 @@ setup(
     author_email='sebastian.h.gonzalez@gmail.com',
     url='',
     packages=['kong'],
-    package_dir={'': 'src'},
     include_package_data=True,
     zip_safe=False,
     classifiers=[

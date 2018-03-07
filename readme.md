@@ -1,8 +1,10 @@
 # Python Kong Client
+[![Build Status](https://travis-ci.org/SebastianHGonzalez/python-kong-client.svg?branch=master)](https://travis-ci.org/SebastianHGonzalez/python-kong-client) 
+
 ## Description
 This is a small library to provide [kong](http://getkong.org/) server administration functionality inside your python application
 
-This library is currently in version 0.1.3 and it was built around [kong 0.12.x specifications](https://getkong.org/docs/0.12.x/admin-api/)
+This library is currently in version 0.1.4 and it was built around [kong 0.12.x specifications](https://getkong.org/docs/0.12.x/admin-api/)
 
 ## Features
 Supported operations for Apis, Consumers and Plugins
