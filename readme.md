@@ -1,4 +1,6 @@
 # Python Kong Client
+[![Build Status](https://travis-ci.org/SebastianHGonzalez/python-kong-client.svg?branch=master)](https://travis-ci.org/SebastianHGonzalez/python-kong-client) 
+
 ## Description
 This is a small library to provide [kong](http://getkong.org/) server administration functionality inside your python application
 
