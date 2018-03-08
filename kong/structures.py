@@ -41,7 +41,7 @@ class ApiData(dict):
         if parameter not in self.allowed_parameters():
             raise KeyError('invalid parameter: %s' % parameter)
 
-        if not isinstance(value, (str, int, bool, list)):
+        if not isinstance(value, (str, int, bool, list, dict)):
             raise ValueError('invalid value: %s value must be str, int, bool, or list' % parameter)
 
     def add_uri(self, uri):
