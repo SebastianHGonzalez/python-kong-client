@@ -21,9 +21,12 @@ class KongAdminClient(RestClient):  # pylint: disable=too-few-public-methods
     def __init__(self, *args, **kwargs):
         super(KongAdminClient, self).__init__(*args, **kwargs)
 
-        self.apis = ApiAdminClient(self.url, self._session)
-        self.consumers = ConsumerAdminClient(self.url, self._session)
-        self.plugins = PluginAdminClient(self.url, self._session)
+        self.apis = ApiAdminClient(self.url, self.session)
+        self.consumers = ConsumerAdminClient(self.url, self.session)
+        self.plugins = PluginAdminClient(self.url, self.session)
+
+    def node_status(self):
+        return self.session.get(self.url + 'status/').json()
 
 
 class KongAbstractClient(RestClient):
