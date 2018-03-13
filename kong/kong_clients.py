@@ -1,22 +1,39 @@
 from abc import abstractmethod
+from urllib3.util.url import Url, parse_url
 from requests import session
 from kong.structures import ApiData
 
 
-class RestClient:  # pylint: disable=too-few-public-methods
+class RestClient:
 
     def __init__(self, url, _session=session()):
         self._session = _session
 
-        # TODO: validate url
-        self.url = url
+        self.url = self.normalize_url(url)
 
     @property
     def session(self):
         return self._session
 
+    @staticmethod
+    def normalize_url(url):
+        url = parse_url(url)
 
-class KongAdminClient(RestClient):  # pylint: disable=too-few-public-methods
+        path = url.path or ''
+        if not path.endswith('/'):
+            path += '/'
+
+        url = Url(scheme=url.scheme or 'http',
+                  auth=url.auth,
+                  host=url.host,
+                  port=url.port,
+                  path=path,
+                  fragment=url.fragment)
+
+        return url.url
+
+
+class KongAdminClient(RestClient):
 
     def __init__(self, *args, **kwargs):
         super(KongAdminClient, self).__init__(*args, **kwargs)
