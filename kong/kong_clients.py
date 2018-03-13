@@ -28,6 +28,9 @@ class KongAdminClient(RestClient):  # pylint: disable=too-few-public-methods
     def node_status(self):
         return self.session.get(self.url + 'status/').json()
 
+    def node_information(self):
+        return self.session.get(self.url).json()
+
 
 class KongAbstractClient(RestClient):
 
