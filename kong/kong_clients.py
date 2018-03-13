@@ -28,7 +28,6 @@ class RestClient:
                   host=url.host,
                   port=url.port,
                   path=path,
-                  query=url.query,
                   fragment=url.fragment)
 
         return url.url
