@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from urllib3.util.url import Url, parse_url
 from requests import session
-from kong.structures import ApiData
+from kong.structures import ApiData, ConsumerData
 
 
 class RestClient:
@@ -367,3 +367,8 @@ class ServiceAdminClient(KongAbstractClient):
     @property
     def path(self):
         return 'services/'
+
+    def create(self, name, **kwargs):
+        consumer = ConsumerData(name=name, **kwargs)
+
+        return self._send_create(consumer)

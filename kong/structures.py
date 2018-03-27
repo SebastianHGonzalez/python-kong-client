@@ -1,4 +1,5 @@
 import re
+from kong.exceptions import SchemaViolation
 
 
 class ApiData(dict):
@@ -55,3 +56,22 @@ class ApiData(dict):
                     string=uri) is None:
             raise ValueError("invalid uri: %s" % normalized)
         return normalized
+
+
+class ConsumerData(dict):
+
+    def __init__(self, *args, **kwargs):
+        super(ConsumerData, self).__init__(*args, **kwargs)
+
+        self.validate()
+
+    def validate(self):
+        for key, value in self.items():
+            if key not in self.allowed_params:
+                raise SchemaViolation('invalid parameter: %s' % key)
+
+    @property
+    def allowed_params(self):
+        return 'name', 'protocol', 'host', 'port', 'path',\
+               'retries', 'connect_timeout', 'send_timeout',\
+               'read_timeout', 'url'
