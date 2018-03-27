@@ -156,8 +156,6 @@ class ApiAdminClientTest(unittest.TestCase):
         expected_data = {}
         for k, v in api_data.items():
             value = self.api_admin_client._stringify_if_list(v)
-            if isinstance(value, (str, list)) and not value:
-                continue
             expected_data[k] = value
         api_endpoint = self.apis_endpoint + self.api_name
         self.session_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
