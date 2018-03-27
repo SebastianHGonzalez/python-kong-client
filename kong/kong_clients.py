@@ -159,7 +159,7 @@ class KongAbstractClient(RestClient):
         return self._validate_params(params, self._allowed_update_params)
 
     def create(self, name, **kwargs):
-        return self._send_create({**kwargs, **{'name', name}})
+        return self._send_create(dict(**kwargs, name=name))
 
     def retrieve(self, pk_or_id):
         if not isinstance(pk_or_id, str):
@@ -359,3 +359,10 @@ class ApiAdminClient(KongAbstractClient):
     def update(self, pk_or_id, **kwargs):
         response = super(ApiAdminClient, self).update(pk_or_id, **kwargs)
         return self.__api_data_from_response(response)
+
+
+class ServiceAdminClient(KongAbstractClient):
+
+    @property
+    def path(self):
+        return 'services/'
