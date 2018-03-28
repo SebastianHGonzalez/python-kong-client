@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 import re
-from urllib3.util import parse_url
+from urllib3.util import parse_url, Url
 
 from kong.exceptions import SchemaViolation
 
@@ -10,17 +10,17 @@ class ObjectData:
 
     def __init__(self, name, **kwargs):
 
-        self.validate_schema(**kwargs)
+        validated = self.validate_schema(**kwargs)
 
         self.validate_parameter('name', name)
         self.name = name
 
-        for k, val in kwargs.items():
+        for k, val in validated.items():
             self.validate_parameter(k, val)
             self.__setattr__(k, val)
 
     @abstractmethod
-    def validate_schema(self, **kwargs):
+    def validate_schema(self, params):
         pass
 
     @property
@@ -72,6 +72,8 @@ class ApiData(ObjectData):
         if not self.satisfy_semi_optional_parameters(**kwargs):
             raise SchemaViolation('uris, methods or hosts must be provided to create')
 
+        return kwargs
+
     def add_uri(self, uri):
         self.uris.append(self.__normalize_uri(uri))
         return ", ".join(self.uris)
@@ -87,8 +89,26 @@ class ApiData(ObjectData):
 
 class ServiceData(ObjectData):
 
+    def validate_schema(self, **kwargs):
+        if 'url' in kwargs:
+            if ('protocol' in kwargs) or ('host' in kwargs) \
+                    or ('port' in kwargs) or ('path' in kwargs):
+                raise SchemaViolation('if url is provided porotocol, host, port and path are unnecesary')
+
+            url = parse_url(kwargs.pop('url'))
+            kwargs['protocol'] = url.scheme
+            kwargs['host'] = url.host
+            kwargs['port'] = url.port or 80
+            kwargs['path'] = url.path
+
+        return kwargs
+
     @property
     def allowed_parameters(self):
         return 'name', 'protocol', 'host', 'port', 'path',\
                'retries', 'connect_timeout', 'send_timeout',\
                'read_timeout', 'url'
+
+    @property
+    def url(self):
+        return Url(scheme=self.protocol, host=self.host, port=self.port, path=self.path).url
