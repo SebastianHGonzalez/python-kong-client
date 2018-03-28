@@ -4,6 +4,7 @@ import requests
 import unittest
 from unittest.mock import MagicMock
 
+import pytest
 
 from kong.kong_clients import ServiceAdminClient
 from kong.exceptions import SchemaViolation
@@ -124,6 +125,7 @@ class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.Test
         self.session.post.assert_called_once_with(endpoint, data=expected_data)
 
 
+@pytest.mark.slow
 class ServiceAdminClientServerTest(ServiceAdminClientAbstractTest, unittest.TestCase):
 
     @property
