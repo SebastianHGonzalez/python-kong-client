@@ -20,7 +20,7 @@ class ObjectData:
             self.__setattr__(k, val)
 
     @abstractmethod
-    def validate_schema(self, params):
+    def validate_schema(self, **kwargs):
         pass
 
     @property
@@ -33,7 +33,8 @@ class ObjectData:
             raise SchemaViolation('invalid parameter: %s' % parameter)
 
         if not isinstance(value, (str, int, bool, list, dict)):
-            raise ValueError('invalid value: %s value must be str, int, bool, list or dict' % parameter)
+            raise ValueError('invalid value: %s value must be str, int, '
+                             'bool, list or dict' % parameter)
 
     def as_dict(self):
         return self.__dict__.copy()
@@ -93,7 +94,8 @@ class ServiceData(ObjectData):
         if 'url' in kwargs:
             if ('protocol' in kwargs) or ('host' in kwargs) \
                     or ('port' in kwargs) or ('path' in kwargs):
-                raise SchemaViolation('if url is provided porotocol, host, port and path are unnecesary')
+                raise SchemaViolation('if url is provided porotocol, host,'
+                                      ' port and path are unnecesary')
 
             url = parse_url(kwargs.pop('url'))
             kwargs['protocol'] = url.scheme

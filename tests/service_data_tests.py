@@ -40,7 +40,9 @@ class ServiceDataTest(unittest.TestCase):
 
     def test_create_service(self):
 
-        created = ServiceData(self.service_name, protocol=self.service_protocol, host=self.service_host)
+        created = ServiceData(self.service_name,
+                              protocol=self.service_protocol,
+                              host=self.service_host)
 
         self.assertEqual(self.service_name, created.name)
         self.assertEqual(self.service_protocol, created.protocol)
