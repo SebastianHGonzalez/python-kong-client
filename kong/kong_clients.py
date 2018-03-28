@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from urllib3.util.url import Url, parse_url
 from requests import session
-from kong.structures import ApiData, ConsumerData
+from kong.structures import ApiData, ServiceData
 
 
 class RestClient:
@@ -325,11 +325,7 @@ class ApiAdminClient(KongAbstractClient):
 
     @staticmethod
     def __api_data_from_response(data):
-        validated_data = {}
-        for k, val in data.items():
-            if k in ApiData.allowed_parameters():
-                validated_data[k] = val
-        return ApiData(**validated_data)
+        return ApiData(**data)
 
     # pylint: disable=arguments-differ
     def create(self, api_name_or_data, upstream_url=None, **kwargs):
@@ -346,16 +342,12 @@ class ApiAdminClient(KongAbstractClient):
         else:
             raise ValueError("must provide ApiData instance or name to create a api")
 
-        data = self._send_create(api_data)
+        data = self._send_create(api_data.as_dict())
         return self.__api_data_from_response(data)
 
     def retrieve(self, pk_or_id):
         response = super(ApiAdminClient, self).retrieve(pk_or_id)
         return self.__api_data_from_response(response)
-
-    def list(self, size=10, **kwargs):
-        return map(self.__api_data_from_response,
-                   super(ApiAdminClient, self).list(size, **kwargs))
 
     def update(self, pk_or_id, **kwargs):
         response = super(ApiAdminClient, self).update(pk_or_id, **kwargs)
@@ -369,6 +361,6 @@ class ServiceAdminClient(KongAbstractClient):
         return 'services/'
 
     def create(self, name, **kwargs):
-        consumer = ConsumerData(name=name, **kwargs)
+        service = ServiceData(name=name, **kwargs)
 
-        return self._send_create(consumer)
+        return self._send_create(service.as_dict())

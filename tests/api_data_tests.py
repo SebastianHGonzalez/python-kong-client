@@ -2,6 +2,7 @@ import unittest
 import faker
 from kong.providers import ApiDataProvider
 from kong.structures import ApiData
+from kong.exceptions import SchemaViolation
 
 
 class ApiDataTests(unittest.TestCase):
@@ -43,12 +44,12 @@ class ApiDataTests(unittest.TestCase):
                                 upstream_read_timeout=upstream_read_timeout)
 
         # Verify
-        self.assertEqual(self.api_data['name'], self.api_name)
-        self.assertEqual(self.api_data['upstream_url'], self.api_upstream_url)
-        self.assertEqual(self.api_data['uris'], self.api_uris)
+        self.assertEqual(self.api_data.name, self.api_name)
+        self.assertEqual(self.api_data.upstream_url, self.api_upstream_url)
+        self.assertEqual(self.api_data.uris, self.api_uris)
 
     def test_create_api_data_wo_uris_method_or_hosts_raises_exception(self):
-        self.assertRaisesRegex(ValueError,
+        self.assertRaisesRegex(SchemaViolation,
                                r'provided',
                                lambda: ApiData(name=self.api_name,
                                                upstream_url=self.api_upstream_url))
@@ -58,7 +59,7 @@ class ApiDataTests(unittest.TestCase):
         invalid_value = ""
 
         # Verify
-        self.assertRaisesRegex(KeyError,
+        self.assertRaisesRegex(SchemaViolation,
                                r'invalid_field',
                                lambda: ApiData(name=self.api_name,
                                                upstream_url=self.api_upstream_url,
