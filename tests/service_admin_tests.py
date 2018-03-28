@@ -109,13 +109,9 @@ class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.Test
     def test_create_a_service_w_url(self):
         super(ServiceAdminClientMockedTest, self).test_create_a_service_w_url()
 
-        expected_data = dict(name=self.service_name, url=self.service_url)
-        endpoint = self.kong_url + 'services/'
-        self.session.post.assert_called_once_with(endpoint, data=expected_data)
+        self.assert_called_create_in_mock()
 
-    def test_create_service(self):
-        super(ServiceAdminClientMockedTest, self).test_create_service()
-
+    def assert_called_create_in_mock(self):
         expected_data = dict(name=self.service_name,
                              protocol=self.service_protocol,
                              host=self.service_host,
@@ -123,6 +119,11 @@ class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.Test
                              path=self.service_path)
         endpoint = self.kong_url + 'services/'
         self.session.post.assert_called_once_with(endpoint, data=expected_data)
+
+    def test_create_service(self):
+        super(ServiceAdminClientMockedTest, self).test_create_service()
+
+        self.assert_called_create_in_mock()
 
 
 @pytest.mark.slow
