@@ -357,6 +357,16 @@ class ApiAdminClient(KongAbstractClient):
 class ServiceAdminClient(KongAbstractClient):
 
     @property
+    def _allowed_update_params(self):
+        return 'name', 'protocol', 'host', 'port', 'path', \
+               'retries', 'connect_timeout', 'send_timeout', \
+               'read_timeout', 'url'
+
+    @property
+    def _allowed_query_params(self):
+        pass
+
+    @property
     def path(self):
         return 'services/'
 

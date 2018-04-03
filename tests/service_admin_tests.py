@@ -71,6 +71,10 @@ class ServiceAdminClientAbstractTest:
                                                            invalid='invalid')
                           )
 
+    def test_update(self):
+        # Exercise
+        self.service_admin_client.update(self.service_name, path='/new/path')
+
 
 class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.TestCase):
 
@@ -97,6 +101,8 @@ class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.Test
         self.session = MagicMock()
         self.session.post.return_value.status_code = 201
         self.session.post.return_value.json.return_value = self.service_dict
+        self.session.patch.return_value.status_code = 200
+        self.session.patch.return_value.json.return_value = self.service_dict
 
     def new_service_admin_client(self):
         return ServiceAdminClient(self.kong_url, _session=self.session)
@@ -125,6 +131,13 @@ class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.Test
 
         self.assert_called_create_in_mock()
 
+    def test_update(self):
+        super().test_update()
+
+        expected_data = {'path': '/new/path'}
+        endpoint = self.kong_url + 'services/' + self.service_name
+        self.session.patch.assert_called_once_with(endpoint, data=expected_data)
+
 
 @pytest.mark.slow
 class ServiceAdminClientServerTest(ServiceAdminClientAbstractTest, unittest.TestCase):
@@ -142,3 +155,8 @@ class ServiceAdminClientServerTest(ServiceAdminClientAbstractTest, unittest.Test
 
     def tearDown(self):
         self.service_admin_client.delete(self.service_name)
+
+    def test_update(self):
+        self.service_admin_client.create(name=self.service_name,
+                                         url=self.service_url)
+        super().test_update()
