@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from urllib3.util.url import Url, parse_url
 from requests import session
-from kong.structures import ApiData
+from kong.structures import ApiData, ServiceData
 
 
 class RestClient:
@@ -41,6 +41,7 @@ class KongAdminClient(RestClient):
         self.apis = ApiAdminClient(self.url, self.session)
         self.consumers = ConsumerAdminClient(self.url, self.session)
         self.plugins = PluginAdminClient(self.url, self.session)
+        self.services = ServiceAdminClient(self.url, self.session)
 
     def node_status(self):
         return self.session.get(self.url + 'status/').json()
@@ -159,7 +160,7 @@ class KongAbstractClient(RestClient):
         return self._validate_params(params, self._allowed_update_params)
 
     def create(self, name, **kwargs):
-        return self._send_create({**kwargs, **{'name', name}})
+        return self._send_create(dict(**kwargs, name=name))
 
     def retrieve(self, pk_or_id):
         if not isinstance(pk_or_id, str):
@@ -324,11 +325,7 @@ class ApiAdminClient(KongAbstractClient):
 
     @staticmethod
     def __api_data_from_response(data):
-        validated_data = {}
-        for k, val in data.items():
-            if k in ApiData.allowed_parameters():
-                validated_data[k] = val
-        return ApiData(**validated_data)
+        return ApiData(**data)
 
     # pylint: disable=arguments-differ
     def create(self, api_name_or_data, upstream_url=None, **kwargs):
@@ -345,17 +342,35 @@ class ApiAdminClient(KongAbstractClient):
         else:
             raise ValueError("must provide ApiData instance or name to create a api")
 
-        data = self._send_create(api_data)
+        data = self._send_create(api_data.as_dict())
         return self.__api_data_from_response(data)
 
     def retrieve(self, pk_or_id):
         response = super(ApiAdminClient, self).retrieve(pk_or_id)
         return self.__api_data_from_response(response)
 
-    def list(self, size=10, **kwargs):
-        return map(self.__api_data_from_response,
-                   super(ApiAdminClient, self).list(size, **kwargs))
-
     def update(self, pk_or_id, **kwargs):
         response = super(ApiAdminClient, self).update(pk_or_id, **kwargs)
         return self.__api_data_from_response(response)
+
+
+class ServiceAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_update_params(self):
+        return 'name', 'protocol', 'host', 'port', 'path', \
+               'retries', 'connect_timeout', 'send_timeout', \
+               'read_timeout', 'url'
+
+    @property
+    def _allowed_query_params(self):
+        pass
+
+    @property
+    def path(self):
+        return 'services/'
+
+    def create(self, name, **kwargs):
+        service = ServiceData(name=name, **kwargs)
+
+        return self._send_create(service.as_dict())
