@@ -91,17 +91,29 @@ class ApiData(ObjectData):
 class ServiceData(ObjectData):
 
     def validate_schema(self, **kwargs):
-        if 'url' in kwargs:
-            if ('protocol' in kwargs) or ('host' in kwargs) \
-                    or ('port' in kwargs) or ('path' in kwargs):
-                raise SchemaViolation('if url is provided porotocol, host,'
-                                      ' port and path are unnecesary')
+
+        if 'url' not in kwargs:
+            required_fields = ['host', 'protocol']
+            for field in required_fields:
+                if field not in kwargs:
+                    raise SchemaViolation('%s: required field missing' % field)
+
+            if 'port' not in kwargs:
+                kwargs['port'] = 80
+            if 'path' not in kwargs:
+                kwargs['path'] = '/'
+
+        else:
+            overflowed_fields = ['host', 'protocol', 'port', 'path']
+            for field in overflowed_fields:
+                if field in kwargs:
+                    raise SchemaViolation('%s: got multiple values' % field)
 
             url = parse_url(kwargs.pop('url'))
             kwargs['protocol'] = url.scheme
             kwargs['host'] = url.host
             kwargs['port'] = url.port or 80
-            kwargs['path'] = url.path
+            kwargs['path'] = url.path or '/'
 
         return kwargs
 
