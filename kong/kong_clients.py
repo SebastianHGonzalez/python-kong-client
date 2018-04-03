@@ -2,6 +2,7 @@ from abc import abstractmethod
 from urllib3.util.url import Url, parse_url
 from requests import session
 from kong.structures import ApiData, ServiceData
+from kong.exceptions import SchemaViolation
 
 
 class RestClient:
@@ -374,3 +375,22 @@ class ServiceAdminClient(KongAbstractClient):
         service = ServiceData(name=name, **kwargs)
 
         return self._send_create(service.as_dict())
+
+
+class RouteAdminClient(KongAbstractClient):
+
+    @property
+    def path(self):
+        return 'routes/'
+
+    def create(self, service, **kwargs):
+
+        service_id = service
+
+        if not isinstance(service, str):
+            try:
+                service_id = service.id
+            except AttributeError:
+                raise SchemaViolation('must provide service or service_id')
+
+        return self._send_create(dict(**kwargs, service={'id': service_id}))
