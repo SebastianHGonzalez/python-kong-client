@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import pytest
 
 import unittest
@@ -18,6 +19,17 @@ class RouteAdminAbstractTests:
 
     def test_create_route_w_service_id(self):
         self.create_and_assert(self.service.id)
+
+    def test_retrieve_routes_associated_to_service(self):
+        # Exercise
+        generator = self.route_admin_client.list_associated_to_service(self.service.id)
+
+        # Verify
+        self.assert_retrieve_routes_associated_to_service(generator)
+
+    @abstractmethod
+    def assert_retrieve_routes_associated_to_service(self, result):
+        pass
 
 
 class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
@@ -47,7 +59,7 @@ class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
         self.session = MagicMock()
         self.session.post.return_value.status_code = 201
         self.session.post.return_value.json.return_value = self.service_dict
-        self.kong_url = 'http://kog.url/'
+        self.kong_url = 'http://kong.url/'
         self.routes_endpoint = self.kong_url + 'routes/'
 
     def create_and_assert(self, service_id):
@@ -58,6 +70,16 @@ class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
         # Verify
         expected_data = {'service': {'id': self.service.id}, 'methods': methods}
         self.session.post.assert_called_once_with(self.routes_endpoint, json=expected_data)
+
+    def assert_retrieve_routes_associated_to_service(self, result):
+        self.session.get.return_value.status_code = 200
+        try:
+            result.__next__()
+        except StopIteration:
+            pass
+        # Verify
+        self.session.get.assert_called_once_with('%sservices/%s/routes/' % (self.kong_url, self.service.id),
+                                                 data={'offset': None, 'size': 10})
 
 
 @pytest.mark.slow
@@ -84,3 +106,11 @@ class RouteAdminServerTests(RouteAdminAbstractTests, unittest.TestCase):
         self.created = self.route_admin_client.create(service=service_or_id, methods=methods)
         # Verify
         self.assertEqual(methods, self.created['methods'])
+
+    def assert_retrieve_routes_associated_to_service(self, result):
+        routes_list = list(result)
+        self.assertEqual(0, len(routes_list))
+
+        self.created = self.route_admin_client.create(self.service.id, paths=['/test-path'])
+        routes_list = list(self.route_admin_client.list_associated_to_service(self.service.id))
+        self.assertEqual(1, len(routes_list))
