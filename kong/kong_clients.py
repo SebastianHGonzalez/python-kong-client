@@ -381,8 +381,9 @@ class ServiceAdminClient(KongAbstractClient):
 
     def create(self, name, **kwargs):
         service = ServiceData(name=name, **kwargs)
+        created = self._send_create(service.as_dict())
 
-        return self._send_create(service.as_dict())
+        return ServiceData(created.pop('name'), **created)
 
 
 class RouteAdminClient(KongAbstractClient):
