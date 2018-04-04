@@ -45,6 +45,7 @@ class KongAdminClient(RestClient):
         self.services = ServiceAdminClient(self.url, self.session)
         self.routes = RouteAdminClient(self.url, self.session)
         self.upstreams = UpstreamAdminClient(self.url, self.session)
+        self.targets = TargetAdminClient(self.url, self.session)
 
     def node_status(self):
         return self.session.get(self.url + 'status/').json()
@@ -471,8 +472,7 @@ class UpstreamAdminClient(KongAbstractClient):
         return 'upstreams/'
 
     def health_status(self, name_or_id):
-        endpoint = endpoint or self.endpoint
-        url = endpoint + name_or_id + '/health/'
+        url = self.endpoint + name_or_id + '/health/'
         response = self.session.get(url)
 
         if response.status_code == 404:
@@ -500,8 +500,9 @@ class TargetAdminClient(KongAbstractClient):
 
     @endpoint.setter
     def endpoint(self, val):
-        self.__endpoint = val
+        self.__endpoint = val  # pylint: disable=attribute-defined-outside-init
 
+    #  pylint: disable=arguments-differ
     def create(self, upstream_name_or_id, **kwargs):
 
         if 'target' not in kwargs:
@@ -514,6 +515,7 @@ class TargetAdminClient(KongAbstractClient):
     def configure_endpoint(self, upstream_name_or_id):
         self.endpoint = self.url + (self.path % upstream_name_or_id)
 
+    #  pylint: disable=arguments-differ
     def list(self, upstream_name_or_id, size=10, **kwargs):
         self.configure_endpoint(upstream_name_or_id)
 
@@ -526,13 +528,16 @@ class TargetAdminClient(KongAbstractClient):
 
         return super(TargetAdminClient, self).list(size, **kwargs)
 
+    #  pylint: disable=arguments-differ
     def delete(self, upstream_name_or_id, target_or_id):
         self.configure_endpoint(upstream_name_or_id)
 
         return super(TargetAdminClient, self).delete(target_or_id)
 
-    def set_healthy(self, upstream_name_or_id, target_or_id, healthy):
-        url = self.url + (self.path % upstream_name_or_id) + target_or_id + ('/healthy/' if healthy else '/unhealthy/')
+    def set_healthy(self, upstream_name_or_id, target_or_id, is_healthy):
+        url = self.url + (self.path % upstream_name_or_id) \
+              + target_or_id \
+              + ('/healthy/' if is_healthy else '/unhealthy/')
         response = self.session.post(url)
 
         if response.status_code != 204:
