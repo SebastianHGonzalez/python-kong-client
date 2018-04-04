@@ -14,6 +14,9 @@ Supported operations for Services, Routes, Apis, Consumers and Plugins
 - update
 - list
 
+Supported additional operations for Routes
+- list_associated_to_service
+
 Supported additional operations for Plugins
 - retrieve_enabled
 - retrieve_schema

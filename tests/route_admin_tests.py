@@ -78,8 +78,9 @@ class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
         except StopIteration:
             pass
         # Verify
-        self.session.get.assert_called_once_with('%sservices/%s/routes/' % (self.kong_url, self.service.id),
-                                                 data={'offset': None, 'size': 10})
+        self.session.get\
+            .assert_called_once_with('%sservices/%s/routes/' % (self.kong_url, self.service.id),
+                                     data={'offset': None, 'size': 10})
 
 
 @pytest.mark.slow

@@ -408,12 +408,28 @@ class RouteAdminClient(KongAbstractClient):
     #  pylint: disable=arguments-differ
     def create(self, service, **kwargs):
 
+        service_id = self.get_service_id(service)
+
+        return self._send_create(dict(**kwargs, service={'id': service_id}))
+
+    def list_associated_to_service(self, service_or_pk, size=10, **kwargs):
+
+        manager = KongAbstractClient(self.url, _session=self.session)
+        manager.path = 'services/%s/routes/' % self.get_service_id(service_or_pk)
+
+        return manager.list(size, **kwargs)
+
+    @staticmethod
+    def get_service_id(service):
         service_id = service
 
         if not isinstance(service, str):
             try:
                 service_id = service.id
             except AttributeError:
-                raise SchemaViolation('must provide service or service_id')
+                try:
+                    service_id = service.name
+                except AttributeError:
+                    raise SchemaViolation('must provide service or service_id')
 
-        return self._send_create(dict(**kwargs, service={'id': service_id}))
+        return service_id
