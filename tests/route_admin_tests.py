@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import pytest
 
 import unittest
@@ -14,13 +13,11 @@ class RouteAdminAbstractTests:
     def setUp(self):
         self.route_admin_client = RouteAdminClient(self.kong_url, _session=self.session)
 
-    @abstractmethod
     def test_create_route_w_service(self):
-        pass
+        self.create_and_assert(self.service)
 
-    @abstractmethod
     def test_create_route_w_service_id(self):
-        pass
+        self.create_and_assert(self.service.id)
 
 
 class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
@@ -53,12 +50,6 @@ class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
         self.kong_url = 'http://kog.url/'
         self.routes_endpoint = self.kong_url + 'routes/'
 
-    def test_create_route_w_service(self):
-        self.create_and_assert(self.service)
-
-    def test_create_route_w_service_id(self):
-        self.create_and_assert(self.service.id)
-
     def create_and_assert(self, service_id):
         # Setup
         methods = ['GET', 'POST']
@@ -66,7 +57,7 @@ class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
         self.route_admin_client.create(service=service_id, methods=methods)
         # Verify
         expected_data = {'service': {'id': self.service.id}, 'methods': methods}
-        self.session.post.assert_called_once_with(self.routes_endpoint, data=expected_data)
+        self.session.post.assert_called_once_with(self.routes_endpoint, json=expected_data)
 
 
 @pytest.mark.slow
@@ -78,22 +69,18 @@ class RouteAdminServerTests(RouteAdminAbstractTests, unittest.TestCase):
 
         self.service_admin_client = ServiceAdminClient(self.kong_url)
 
-        self.service = self.service_admin_client.create('test-service', url='http://test.service/path')
+        self.service = self.service_admin_client.create('test-service',
+                                                        url='http://test.service/path')
         super().setUp()
 
     def tearDown(self):
+        self.route_admin_client.delete(self.created['id'])
         self.service_admin_client.delete(self.service.id)
 
-    def test_create_route_w_service(self):
+    def create_and_assert(self, service_or_id):
         # Setup
         methods = ['GET', 'POST']
         # Exercise
-        created = self.route_admin_client.create(service=self.service, methods=methods)
+        self.created = self.route_admin_client.create(service=service_or_id, methods=methods)
         # Verify
-        self.assertEqual(methods, created.methods)
-
-    def test_create_route_w_service_id(self):
-        # Setup
-        methods = ['GET', 'POST']
-        # Exercise
-        created = self.route_admin_client.create(service=self.service.id, methods=methods)
+        self.assertEqual(methods, self.created['methods'])

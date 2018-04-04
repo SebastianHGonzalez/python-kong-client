@@ -216,7 +216,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
     """
     count is deprecated since kong 0.13.0
-    
+
     def test_api_admin_count(self):
         "Test: ApiAdmin.count() returns the number of created apis"
         # Setup

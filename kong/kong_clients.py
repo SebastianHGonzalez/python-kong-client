@@ -130,9 +130,10 @@ class KongAbstractClient(RestClient):
             offset = response['offset']
         else:
             offset = None
+        #  pylint: disable=pointless-string-statement
         """
         total is deprecated since kong 0.13.0
-        
+
         return offset, elements, response['total']
         """
         return offset, elements
@@ -191,12 +192,14 @@ class KongAbstractClient(RestClient):
 
         return generator()
 
-    """    
+    #  pylint: disable=pointless-string-statement
+    """
     Deprecated since kong 0.13.0
-    
+
     def count(self):
         return self._send_list(0)[2]
     """
+
     def update(self, pk_or_id, **kwargs):
 
         query_params = self._validate_update_params(kwargs)
@@ -388,10 +391,17 @@ class ServiceAdminClient(KongAbstractClient):
 
 class RouteAdminClient(KongAbstractClient):
 
+    def _allowed_update_params(self):
+        pass
+
+    def _allowed_query_params(self):
+        pass
+
     @property
     def path(self):
         return 'routes/'
 
+    #  pylint: disable=arguments-differ
     def create(self, service, **kwargs):
 
         service_id = service
