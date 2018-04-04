@@ -44,6 +44,8 @@ class KongAdminClient(RestClient):
         self.plugins = PluginAdminClient(self.url, self.session)
         self.services = ServiceAdminClient(self.url, self.session)
         self.routes = RouteAdminClient(self.url, self.session)
+        self.upstreams = UpstreamAdminClient(self.url, self.session)
+        self.targets = TargetAdminClient(self.url, self.session)
 
     def node_status(self):
         return self.session.get(self.url + 'status/').json()
@@ -433,3 +435,116 @@ class RouteAdminClient(KongAbstractClient):
                     raise SchemaViolation('must provide service or service_id')
 
         return service_id
+
+
+class UpstreamAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_update_params(self):
+        return [
+            'name', 'slots', 'hash_on', 'hash_fallback', 'hash_on_header',
+            'hash_fallback_header', 'healthchecks.active.timeout',
+            'healthchecks.active.concurrency',
+            'healthchecks.active.http_path',
+            'healthchecks.active.healthy.interval',
+            'healthchecks.active.healthy.http_statuses',
+            'healthchecks.active.healthy.successes',
+            'healthchecks.active.unhealthy.interval',
+            'healthchecks.active.unhealthy.http_statuses',
+            'healthchecks.active.unhealthy.tcp_failures',
+            'healthchecks.active.unhealthy.timeouts',
+            'healthchecks.active.unhealthy.http_failures',
+            'healthchecks.passive.healthy.http_statuses',
+            'healthchecks.passive.healthy.successes',
+            'healthchecks.passive.unhealthy.http_statuses',
+            'healthchecks.passive.unhealthy.tcp_failures',
+            'healthchecks.passive.unhealthy.timeouts',
+            'healthchecks.passive.unhealthy.http_failures',
+        ]
+
+    @property
+    def _allowed_query_params(self):
+        return 'id', 'name', 'hash_on', 'hash_fallback',\
+               'hash_on_header', 'hash_fallback_header', 'slots'
+
+    @property
+    def path(self):
+        return 'upstreams/'
+
+    def health_status(self, name_or_id):
+        url = self.endpoint + name_or_id + '/health/'
+        response = self.session.get(url)
+
+        if response.status_code == 404:
+            raise NameError(response.content)
+
+        if response.status_code != 200:
+            raise Exception(response.content)
+
+        return response.json()
+
+
+class TargetAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_query_params(self):
+        return 'id', 'target', 'weight'
+
+    @property
+    def path(self):
+        return 'upstreams/%s/targets/'
+
+    @property
+    def endpoint(self):
+        return self.__endpoint
+
+    @endpoint.setter
+    def endpoint(self, val):
+        self.__endpoint = val  # pylint: disable=attribute-defined-outside-init
+
+    #  pylint: disable=arguments-differ
+    def create(self, upstream_name_or_id, **kwargs):
+
+        if 'target' not in kwargs:
+            raise SchemaViolation('must provide target url to create a target object')
+
+        self.configure_endpoint(upstream_name_or_id)
+
+        return self._send_create(kwargs)
+
+    def configure_endpoint(self, upstream_name_or_id):
+        self.endpoint = self.url + (self.path % upstream_name_or_id)
+
+    #  pylint: disable=arguments-differ
+    def list(self, upstream_name_or_id, size=10, **kwargs):
+        self.configure_endpoint(upstream_name_or_id)
+
+        return super(TargetAdminClient, self).list(size, **kwargs)
+
+    def list_all(self, upstream_name_or_id, size=10, **kwargs):
+        self.configure_endpoint(upstream_name_or_id)
+
+        self.endpoint += 'all/'
+
+        return super(TargetAdminClient, self).list(size, **kwargs)
+
+    #  pylint: disable=arguments-differ
+    def delete(self, upstream_name_or_id, target_or_id):
+        self.configure_endpoint(upstream_name_or_id)
+
+        return super(TargetAdminClient, self).delete(target_or_id)
+
+    def set_healthy(self, upstream_name_or_id, target_or_id, is_healthy):
+        url = self.url + (self.path % upstream_name_or_id) \
+              + target_or_id \
+              + ('/healthy/' if is_healthy else '/unhealthy/')
+        response = self.session.post(url)
+
+        if response.status_code != 204:
+            raise Exception(response.content)
+
+    def update(self, pk_or_id, **kwargs):
+        raise NotImplementedError
+
+    def retrieve(self, pk_or_id):
+        raise NotImplementedError
