@@ -121,7 +121,8 @@ class ServiceData(ObjectData):
     def allowed_parameters(self):
         return 'name', 'protocol', 'host', 'port', 'path',\
                'retries', 'connect_timeout', 'send_timeout',\
-               'read_timeout', 'url'
+               'read_timeout', 'url', 'id', \
+               'created_at', 'updated_at', 'write_timeout'
 
     @property
     def url(self):

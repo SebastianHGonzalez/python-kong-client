@@ -2,6 +2,7 @@ from abc import abstractmethod
 from urllib3.util.url import Url, parse_url
 from requests import session
 from kong.structures import ApiData, ServiceData
+from kong.exceptions import SchemaViolation
 
 
 class RestClient:
@@ -42,6 +43,7 @@ class KongAdminClient(RestClient):
         self.consumers = ConsumerAdminClient(self.url, self.session)
         self.plugins = PluginAdminClient(self.url, self.session)
         self.services = ServiceAdminClient(self.url, self.session)
+        self.routes = RouteAdminClient(self.url, self.session)
 
     def node_status(self):
         return self.session.get(self.url + 'status/').json()
@@ -72,7 +74,7 @@ class KongAbstractClient(RestClient):
 
         endpoint = endpoint or self.endpoint
 
-        response = self.session.post(endpoint, data=data)
+        response = self.session.post(endpoint, json=data)
 
         if response.status_code == 409:
             raise NameError(response.content)
@@ -95,7 +97,7 @@ class KongAbstractClient(RestClient):
     def _send_update(self, pk_or_id, data, endpoint=None):
         url = (endpoint or self.endpoint) + pk_or_id
 
-        response = self.session.patch(url, data=data)
+        response = self.session.patch(url, json=data)
 
         if response.status_code == 400:
             raise KeyError(response.content)
@@ -128,8 +130,13 @@ class KongAbstractClient(RestClient):
             offset = response['offset']
         else:
             offset = None
+        #  pylint: disable=pointless-string-statement
+        """
+        total is deprecated since kong 0.13.0
 
         return offset, elements, response['total']
+        """
+        return offset, elements
 
     def _send_retrieve(self, name_or_id, endpoint=None):
         endpoint = endpoint or self.endpoint
@@ -175,7 +182,7 @@ class KongAbstractClient(RestClient):
         def generator():
             offset = None
             while True:
-                offset, cached, _ = self._send_list(size, offset, **query_params)
+                offset, cached = self._send_list(size, offset, **query_params)
 
                 while cached:
                     yield cached.pop()
@@ -185,8 +192,13 @@ class KongAbstractClient(RestClient):
 
         return generator()
 
+    #  pylint: disable=pointless-string-statement
+    """
+    Deprecated since kong 0.13.0
+
     def count(self):
         return self._send_list(0)[2]
+    """
 
     def update(self, pk_or_id, **kwargs):
 
@@ -364,7 +376,7 @@ class ServiceAdminClient(KongAbstractClient):
 
     @property
     def _allowed_query_params(self):
-        pass
+        return []
 
     @property
     def path(self):
@@ -372,5 +384,52 @@ class ServiceAdminClient(KongAbstractClient):
 
     def create(self, name, **kwargs):
         service = ServiceData(name=name, **kwargs)
+        created = self._send_create(service.as_dict())
 
-        return self._send_create(service.as_dict())
+        return ServiceData(created.pop('name'), **created)
+
+
+class RouteAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_update_params(self):
+        return 'protocols', 'methods', 'hosts',\
+               'paths', 'strip_path', 'preserve_host',\
+               'service',
+
+    @property
+    def _allowed_query_params(self):
+        return []
+
+    @property
+    def path(self):
+        return 'routes/'
+
+    #  pylint: disable=arguments-differ
+    def create(self, service, **kwargs):
+
+        service_id = self.get_service_id(service)
+
+        return self._send_create(dict(**kwargs, service={'id': service_id}))
+
+    def list_associated_to_service(self, service_or_pk, size=10, **kwargs):
+
+        manager = KongAbstractClient(self.url, _session=self.session)
+        manager.path = 'services/%s/routes/' % self.get_service_id(service_or_pk)
+
+        return manager.list(size, **kwargs)
+
+    @staticmethod
+    def get_service_id(service):
+        service_id = service
+
+        if not isinstance(service, str):
+            try:
+                service_id = service.id
+            except AttributeError:
+                try:
+                    service_id = service.name
+                except AttributeError:
+                    raise SchemaViolation('must provide service or service_id')
+
+        return service_id

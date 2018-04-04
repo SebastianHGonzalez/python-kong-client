@@ -40,7 +40,7 @@ class PluginAdminTest(unittest.TestCase):
 
         # Verify
         expected_data = {'name': self.plugin_name}
-        self.session_mock.post.assert_called_once_with(self.plugins_endpoint, data=expected_data)
+        self.session_mock.post.assert_called_once_with(self.plugins_endpoint, json=expected_data)
 
     def test_create_plugin_for_all_apis_and_specific_consumer(self):
 
@@ -50,7 +50,7 @@ class PluginAdminTest(unittest.TestCase):
         # Verify
         expected_data = {'name': self.plugin_name,
                          'consumer_id': self.consumer_id}
-        self.session_mock.post.assert_called_once_with(self.plugins_endpoint, data=expected_data)
+        self.session_mock.post.assert_called_once_with(self.plugins_endpoint, json=expected_data)
 
     def test_create_plugin_for_specific_api_and_every_consumer(self):
 
@@ -60,7 +60,7 @@ class PluginAdminTest(unittest.TestCase):
         # Verify
         expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/plugins/'
         expected_data = {'name': self.plugin_name}
-        self.session_mock.post.assert_called_once_with(expected_url, data=expected_data)
+        self.session_mock.post.assert_called_once_with(expected_url, json=expected_data)
 
     def test_create_plugin_w_config(self):
         # Setup
@@ -72,7 +72,7 @@ class PluginAdminTest(unittest.TestCase):
         # Verify
         expected_data = {'name': self.plugin_name,
                          'config.setting': 'value'}
-        self.session_mock.post.assert_called_once_with(self.plugins_endpoint, data=expected_data)
+        self.session_mock.post.assert_called_once_with(self.plugins_endpoint, json=expected_data)
 
     def test_retrieve_existing_plugin(self):
         # Exercise
@@ -198,7 +198,7 @@ class PluginAdminTest(unittest.TestCase):
                          'consumer_id': self.consumer_id,
                          'config.setting': 'value'}
 
-        self.session_mock.patch.assert_called_once_with(expected_url, data=expected_data)
+        self.session_mock.patch.assert_called_once_with(expected_url, json=expected_data)
 
     def test_update_plugin_wo_api_pk(self):
         # Setup
@@ -216,7 +216,7 @@ class PluginAdminTest(unittest.TestCase):
                          'consumer_id': self.consumer_id,
                          'config.setting': 'value'}
 
-        self.session_mock.patch.assert_called_once_with(expected_url, data=expected_data)
+        self.session_mock.patch.assert_called_once_with(expected_url, json=expected_data)
 
     def test_update_plugin_wo_config(self):
         # Setup
@@ -230,4 +230,4 @@ class PluginAdminTest(unittest.TestCase):
         expected_url = self.plugins_endpoint + self.plugin_id
         expected_data = data
 
-        self.session_mock.patch.assert_called_once_with(expected_url, data=expected_data)
+        self.session_mock.patch.assert_called_once_with(expected_url, json=expected_data)
