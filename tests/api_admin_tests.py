@@ -214,10 +214,11 @@ class ApiAdminClientTest(unittest.TestCase):
         self.assertRaisesRegex(KeyError, 'invalid_field',
                                lambda: self.api_admin_client.list(**invalid_query))
 
+    """
+    count is deprecated since kong 0.13.0
+    
     def test_api_admin_count(self):
-        """
-            Test: ApiAdmin.count() returns the number of created apis
-        """
+        "Test: ApiAdmin.count() returns the number of created apis"
         # Setup
         amount = self.faker.random_int(1, 50)
         apis = []
@@ -236,7 +237,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertEqual(amount, actual_amount)
-
+    """
     def test_create_bad_request(self):
         # Setup
         self.session_mock.post.return_value.status_code = 409

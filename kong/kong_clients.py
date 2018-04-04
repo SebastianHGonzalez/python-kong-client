@@ -129,8 +129,12 @@ class KongAbstractClient(RestClient):
             offset = response['offset']
         else:
             offset = None
-
+        """
+        total is deprecated since kong 0.13.0
+        
         return offset, elements, response['total']
+        """
+        return offset, elements
 
     def _send_retrieve(self, name_or_id, endpoint=None):
         endpoint = endpoint or self.endpoint
@@ -176,7 +180,7 @@ class KongAbstractClient(RestClient):
         def generator():
             offset = None
             while True:
-                offset, cached, _ = self._send_list(size, offset, **query_params)
+                offset, cached = self._send_list(size, offset, **query_params)
 
                 while cached:
                     yield cached.pop()
@@ -186,9 +190,12 @@ class KongAbstractClient(RestClient):
 
         return generator()
 
+    """    
+    Deprecated since kong 0.13.0
+    
     def count(self):
         return self._send_list(0)[2]
-
+    """
     def update(self, pk_or_id, **kwargs):
 
         query_params = self._validate_update_params(kwargs)
