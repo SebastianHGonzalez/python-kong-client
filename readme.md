@@ -7,13 +7,12 @@ This is a small library to provide [kong](http://getkong.org/) server administra
 This library is currently in version 0.1.6 and it was built around [kong 0.13.x specifications](https://getkong.org/docs/0.13.x/admin-api/)
 
 ## Features
-Supported operations for Apis, Consumers and Plugins
+Supported operations for Services, Routes, Apis, Consumers and Plugins
 - create
 - delete
 - retrieve
 - update
 - list
-- count
 
 Supported additional operations for Plugins
 - retrieve_enabled
@@ -21,6 +20,7 @@ Supported additional operations for Plugins
 
 Not supported
 - update_or_create
+- count (dropped in 0.16/kong 0.13.0)
 - Information routes (yet)
 - Certificates object routes (yet)
 - SNI object routes (yet)
