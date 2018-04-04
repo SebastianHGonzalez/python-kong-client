@@ -48,7 +48,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
-                                                       data={'username': self.consumer_username})
+                                                       json={'username': self.consumer_username})
 
     def test_create_consumer_w_custom_id(self):
         # Exercise
@@ -56,7 +56,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
-                                                       data={'custom_id': self.consumer_custom_id})
+                                                       json={'custom_id': self.consumer_custom_id})
 
     def test_create_consumer_w_custom_id_and_username(self):
         # Exercise
@@ -65,7 +65,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
-                                                       data={'username': self.consumer_username,
+                                                       json={'username': self.consumer_username,
                                                              'custom_id': self.consumer_custom_id})
 
     def test_create_consumer_wo_parameters(self):
@@ -154,7 +154,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.session_mock.patch\
             .assert_called_once_with(self.consumer_endpoint + self.consumer_username,
-                                     data=data)
+                                     json=data)
 
     def test_update_consumer_w_invalid_params(self):
         # Setup

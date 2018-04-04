@@ -74,7 +74,7 @@ class KongAbstractClient(RestClient):
 
         endpoint = endpoint or self.endpoint
 
-        response = self.session.post(endpoint, data=data)
+        response = self.session.post(endpoint, json=data)
 
         if response.status_code == 409:
             raise NameError(response.content)
@@ -97,7 +97,7 @@ class KongAbstractClient(RestClient):
     def _send_update(self, pk_or_id, data, endpoint=None):
         url = (endpoint or self.endpoint) + pk_or_id
 
-        response = self.session.patch(url, data=data)
+        response = self.session.patch(url, json=data)
 
         if response.status_code == 400:
             raise KeyError(response.content)

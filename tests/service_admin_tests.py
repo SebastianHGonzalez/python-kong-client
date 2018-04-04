@@ -126,7 +126,7 @@ class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.Test
                              port=self.service_port,
                              path=self.service_path)
         endpoint = self.kong_url + 'services/'
-        self.session.post.assert_called_once_with(endpoint, data=expected_data)
+        self.session.post.assert_called_once_with(endpoint, json=expected_data)
 
     def test_create_service(self):
         super(ServiceAdminClientMockedTest, self).test_create_service()
@@ -138,7 +138,7 @@ class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.Test
 
         expected_data = {'path': '/new/path'}
         endpoint = self.kong_url + 'services/' + self.service_name
-        self.session.patch.assert_called_once_with(endpoint, data=expected_data)
+        self.session.patch.assert_called_once_with(endpoint, json=expected_data)
 
 
 @pytest.mark.slow

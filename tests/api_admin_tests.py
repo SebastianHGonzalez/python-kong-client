@@ -93,7 +93,7 @@ class ApiAdminClientTest(unittest.TestCase):
                                     upstream_url=self.api_upstream_url,
                                     uris=self.api_uris)
         self.session_mock.post.assert_called_once_with(self.apis_endpoint,
-                                                       data=expected_api_data.as_dict())
+                                                       json=expected_api_data.as_dict())
 
     def test_api_admin_create_using_api_data(self):
         """
@@ -109,7 +109,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.api_admin_client.create(orig_data)
 
         # Verify
-        self.session_mock.post.assert_called_once_with(self.apis_endpoint, data=orig_data.as_dict())
+        self.session_mock.post.assert_called_once_with(self.apis_endpoint, json=orig_data.as_dict())
 
     def test_api_admin_delete_by_name(self):
         """
@@ -158,7 +158,7 @@ class ApiAdminClientTest(unittest.TestCase):
             value = self.api_admin_client._stringify_if_list(v)
             expected_data[k] = value
         api_endpoint = self.apis_endpoint + self.api_name
-        self.session_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.patch.assert_called_once_with(api_endpoint, json=expected_data)
 
     def test_api_admin_list(self):
         """
@@ -350,7 +350,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
-                                                        data={'hosts': 'host1, host2'})
+                                                        json={'hosts': 'host1, host2'})
 
     def test_update_api_removing_hosts(self):
         # Exercise
@@ -358,7 +358,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
-                                                        data={'hosts': ''})
+                                                        json={'hosts': ''})
 
     def test_update_api_removing_uris(self):
         # Exercise
@@ -366,4 +366,4 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
-                                                        data={'uris': ''})
+                                                        json={'uris': ''})
