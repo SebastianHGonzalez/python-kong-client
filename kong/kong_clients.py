@@ -43,6 +43,7 @@ class KongAdminClient(RestClient):
         self.consumers = ConsumerAdminClient(self.url, self.session)
         self.plugins = PluginAdminClient(self.url, self.session)
         self.services = ServiceAdminClient(self.url, self.session)
+        self.routes = RouteAdminClient(self.url, self.session)
 
     def node_status(self):
         return self.session.get(self.url + 'status/').json()
