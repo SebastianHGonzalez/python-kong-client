@@ -391,9 +391,13 @@ class ServiceAdminClient(KongAbstractClient):
 
 class RouteAdminClient(KongAbstractClient):
 
+    @property
     def _allowed_update_params(self):
-        pass
+        return 'protocols', 'methods', 'hosts',\
+               'paths', 'strip_path', 'preserve_host',\
+               'service',
 
+    @property
     def _allowed_query_params(self):
         pass
 
