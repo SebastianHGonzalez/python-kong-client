@@ -42,6 +42,8 @@ class ServiceAdminClientAbstractTest:
         self.assert_correctly_created(created)
 
     def assert_correctly_created(self, created):
+        created = created.as_dict()
+
         self.assertEquals(12, len(created))
         self.assertRegex(created['id'], '^[\w\d]{8}-([\w\d]{4}-){3}[\w\d]{12}$')
         self.assertTrue(isinstance(created['created_at'], int))
