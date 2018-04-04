@@ -376,7 +376,7 @@ class ServiceAdminClient(KongAbstractClient):
 
     @property
     def _allowed_query_params(self):
-        pass
+        return []
 
     @property
     def path(self):
@@ -399,7 +399,7 @@ class RouteAdminClient(KongAbstractClient):
 
     @property
     def _allowed_query_params(self):
-        pass
+        return []
 
     @property
     def path(self):
