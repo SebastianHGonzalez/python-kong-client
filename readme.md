@@ -7,28 +7,36 @@ This is a small library to provide [kong](http://getkong.org/) server administra
 This library is currently in version 0.1.6 and it was built around [kong 0.13.x specifications](https://getkong.org/docs/0.13.x/admin-api/)
 
 ## Features
-Supported operations for Services, Routes, Apis, Consumers and Plugins
+Supported Information Routes
+- node_status
+- node_information
+
+Supported operations for Services, Routes, Apis, Consumers, Plugins and Upstreams
 - create
 - delete
 - retrieve
 - update
 - list
 
-Supported additional operations for Routes
+Additional supported operations for Routes
 - list_associated_to_service
 
-Supported additional operations for Plugins
+Additional supported operations for Plugins
 - retrieve_enabled
 - retrieve_schema
+
+Additional supported operations for Upstreams
+- health_status
+
+Additional supported operations for Targets
+- list_all
+- set_healthy
 
 Not supported
 - update_or_create
 - count (dropped in 0.16/kong 0.13.0)
-- Information routes (yet)
 - Certificates object routes (yet)
 - SNI object routes (yet)
-- Upstream object routes (yet)
-- Target object routes (yet)
 
 ## Usage
 #### Install
@@ -47,7 +55,7 @@ kong_client.apis.create(api_name,  # Any string
                         api_upstream_url,  # Url string 'http://foo.bar/something"
                         uris=api_uris) # List of uri strings
 ```
-for more info checkout [kong documentation](https://getkong.org/docs/0.12.x/admin-api/)
+for more info checkout [kong documentation](https://getkong.org/docs/0.13.x/admin-api/)
 
 ## Development
 #### setup
