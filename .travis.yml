@@ -8,6 +8,8 @@ python:
 # command to install dependencies
 install:
   - pip install -r requirements.txt
-# command to run tests
 script:
-  - pytest # or py.test for Python versions 3.5 and below
+  - ./scripts/tests.sh
+  - ./scripts/flake8.sh
+  - ./scripts/pylint.sh
+  - ./scripts/jscpd.sh
