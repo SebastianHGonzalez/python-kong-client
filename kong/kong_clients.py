@@ -1,7 +1,8 @@
 from abc import abstractmethod
 from urllib3.util.url import Url, parse_url
 from requests import session
-from kong.structures import ApiData
+from kong.structures import ApiData, ServiceData
+from kong.exceptions import SchemaViolation
 
 
 class RestClient:
@@ -41,6 +42,10 @@ class KongAdminClient(RestClient):
         self.apis = ApiAdminClient(self.url, self.session)
         self.consumers = ConsumerAdminClient(self.url, self.session)
         self.plugins = PluginAdminClient(self.url, self.session)
+        self.services = ServiceAdminClient(self.url, self.session)
+        self.routes = RouteAdminClient(self.url, self.session)
+        self.upstreams = UpstreamAdminClient(self.url, self.session)
+        self.targets = TargetAdminClient(self.url, self.session)
 
     def node_status(self):
         return self.session.get(self.url + 'status/').json()
@@ -71,7 +76,7 @@ class KongAbstractClient(RestClient):
 
         endpoint = endpoint or self.endpoint
 
-        response = self.session.post(endpoint, data=data)
+        response = self.session.post(endpoint, json=data)
 
         if response.status_code == 409:
             raise NameError(response.content)
@@ -94,7 +99,7 @@ class KongAbstractClient(RestClient):
     def _send_update(self, pk_or_id, data, endpoint=None):
         url = (endpoint or self.endpoint) + pk_or_id
 
-        response = self.session.patch(url, data=data)
+        response = self.session.patch(url, json=data)
 
         if response.status_code == 400:
             raise KeyError(response.content)
@@ -127,8 +132,13 @@ class KongAbstractClient(RestClient):
             offset = response['offset']
         else:
             offset = None
+        #  pylint: disable=pointless-string-statement
+        """
+        total is deprecated since kong 0.13.0
 
         return offset, elements, response['total']
+        """
+        return offset, elements
 
     def _send_retrieve(self, name_or_id, endpoint=None):
         endpoint = endpoint or self.endpoint
@@ -159,7 +169,7 @@ class KongAbstractClient(RestClient):
         return self._validate_params(params, self._allowed_update_params)
 
     def create(self, name, **kwargs):
-        return self._send_create({**kwargs, **{'name', name}})
+        return self._send_create(dict(**kwargs, name=name))
 
     def retrieve(self, pk_or_id):
         if not isinstance(pk_or_id, str):
@@ -174,7 +184,7 @@ class KongAbstractClient(RestClient):
         def generator():
             offset = None
             while True:
-                offset, cached, _ = self._send_list(size, offset, **query_params)
+                offset, cached = self._send_list(size, offset, **query_params)
 
                 while cached:
                     yield cached.pop()
@@ -184,8 +194,13 @@ class KongAbstractClient(RestClient):
 
         return generator()
 
+    #  pylint: disable=pointless-string-statement
+    """
+    Deprecated since kong 0.13.0
+
     def count(self):
         return self._send_list(0)[2]
+    """
 
     def update(self, pk_or_id, **kwargs):
 
@@ -324,11 +339,7 @@ class ApiAdminClient(KongAbstractClient):
 
     @staticmethod
     def __api_data_from_response(data):
-        validated_data = {}
-        for k, val in data.items():
-            if k in ApiData.allowed_parameters():
-                validated_data[k] = val
-        return ApiData(**validated_data)
+        return ApiData(**data)
 
     # pylint: disable=arguments-differ
     def create(self, api_name_or_data, upstream_url=None, **kwargs):
@@ -345,17 +356,195 @@ class ApiAdminClient(KongAbstractClient):
         else:
             raise ValueError("must provide ApiData instance or name to create a api")
 
-        data = self._send_create(api_data)
+        data = self._send_create(api_data.as_dict())
         return self.__api_data_from_response(data)
 
     def retrieve(self, pk_or_id):
         response = super(ApiAdminClient, self).retrieve(pk_or_id)
         return self.__api_data_from_response(response)
 
-    def list(self, size=10, **kwargs):
-        return map(self.__api_data_from_response,
-                   super(ApiAdminClient, self).list(size, **kwargs))
-
     def update(self, pk_or_id, **kwargs):
         response = super(ApiAdminClient, self).update(pk_or_id, **kwargs)
         return self.__api_data_from_response(response)
+
+
+class ServiceAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_update_params(self):
+        return 'name', 'protocol', 'host', 'port', 'path', \
+               'retries', 'connect_timeout', 'send_timeout', \
+               'read_timeout', 'url'
+
+    @property
+    def _allowed_query_params(self):
+        return []
+
+    @property
+    def path(self):
+        return 'services/'
+
+    def create(self, name, **kwargs):
+        service = ServiceData(name=name, **kwargs)
+        created = self._send_create(service.as_dict())
+
+        return ServiceData(created.pop('name'), **created)
+
+
+class RouteAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_update_params(self):
+        return 'protocols', 'methods', 'hosts',\
+               'paths', 'strip_path', 'preserve_host',\
+               'service',
+
+    @property
+    def _allowed_query_params(self):
+        return []
+
+    @property
+    def path(self):
+        return 'routes/'
+
+    #  pylint: disable=arguments-differ
+    def create(self, service, **kwargs):
+
+        service_id = self.get_service_id(service)
+
+        return self._send_create(dict(**kwargs, service={'id': service_id}))
+
+    def list_associated_to_service(self, service_or_pk, size=10, **kwargs):
+
+        manager = KongAbstractClient(self.url, _session=self.session)
+        manager.path = 'services/%s/routes/' % self.get_service_id(service_or_pk)
+
+        return manager.list(size, **kwargs)
+
+    @staticmethod
+    def get_service_id(service):
+        service_id = service
+
+        if not isinstance(service, str):
+            try:
+                service_id = service.id
+            except AttributeError:
+                try:
+                    service_id = service.name
+                except AttributeError:
+                    raise SchemaViolation('must provide service or service_id')
+
+        return service_id
+
+
+class UpstreamAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_update_params(self):
+        return [
+            'name', 'slots', 'hash_on', 'hash_fallback', 'hash_on_header',
+            'hash_fallback_header', 'healthchecks.active.timeout',
+            'healthchecks.active.concurrency',
+            'healthchecks.active.http_path',
+            'healthchecks.active.healthy.interval',
+            'healthchecks.active.healthy.http_statuses',
+            'healthchecks.active.healthy.successes',
+            'healthchecks.active.unhealthy.interval',
+            'healthchecks.active.unhealthy.http_statuses',
+            'healthchecks.active.unhealthy.tcp_failures',
+            'healthchecks.active.unhealthy.timeouts',
+            'healthchecks.active.unhealthy.http_failures',
+            'healthchecks.passive.healthy.http_statuses',
+            'healthchecks.passive.healthy.successes',
+            'healthchecks.passive.unhealthy.http_statuses',
+            'healthchecks.passive.unhealthy.tcp_failures',
+            'healthchecks.passive.unhealthy.timeouts',
+            'healthchecks.passive.unhealthy.http_failures',
+        ]
+
+    @property
+    def _allowed_query_params(self):
+        return 'id', 'name', 'hash_on', 'hash_fallback',\
+               'hash_on_header', 'hash_fallback_header', 'slots'
+
+    @property
+    def path(self):
+        return 'upstreams/'
+
+    def health_status(self, name_or_id):
+        url = self.endpoint + name_or_id + '/health/'
+        response = self.session.get(url)
+
+        if response.status_code == 404:
+            raise NameError(response.content)
+
+        if response.status_code != 200:
+            raise Exception(response.content)
+
+        return response.json()
+
+
+class TargetAdminClient(KongAbstractClient):
+
+    @property
+    def _allowed_query_params(self):
+        return 'id', 'target', 'weight'
+
+    @property
+    def path(self):
+        return 'upstreams/%s/targets/'
+
+    @property
+    def endpoint(self):
+        return self.__endpoint
+
+    @endpoint.setter
+    def endpoint(self, val):
+        self.__endpoint = val  # pylint: disable=attribute-defined-outside-init
+
+    #  pylint: disable=arguments-differ
+    def create(self, upstream_name_or_id, **kwargs):
+
+        if 'target' not in kwargs:
+            raise SchemaViolation('must provide target url to create a target object')
+
+        self.configure_endpoint(upstream_name_or_id)
+
+        return self._send_create(kwargs)
+
+    def configure_endpoint(self, upstream_name_or_id):
+        self.endpoint = self.url + (self.path % upstream_name_or_id)
+
+    #  pylint: disable=arguments-differ
+    def list(self, upstream_name_or_id, size=10, **kwargs):
+        self.configure_endpoint(upstream_name_or_id)
+
+        return super(TargetAdminClient, self).list(size, **kwargs)
+
+    def list_all(self, upstream_name_or_id, size=10, **kwargs):
+        self.configure_endpoint(upstream_name_or_id)
+
+        self.endpoint += 'all/'
+
+        return super(TargetAdminClient, self).list(size, **kwargs)
+
+    #  pylint: disable=arguments-differ
+    def delete(self, upstream_name_or_id, target_or_id):
+        self.configure_endpoint(upstream_name_or_id)
+
+        return super(TargetAdminClient, self).delete(target_or_id)
+
+    def set_healthy(self, upstream_name_or_id, target_or_id, is_healthy):
+        url = self.url + (self.path % upstream_name_or_id) \
+              + target_or_id \
+              + ('/healthy/' if is_healthy else '/unhealthy/')
+        response = self.session.post(url)
+
+        if response.status_code != 204:
+            raise Exception(response.content)
+
+    def update(self, pk_or_id, **kwargs):
+        raise NotImplementedError
+
+    def retrieve(self, pk_or_id):
+        raise NotImplementedError

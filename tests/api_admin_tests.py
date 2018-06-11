@@ -47,7 +47,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.session_mock = MagicMock()
         self.requests_mock.session.return_value = self.session_mock
 
-        data_w_id = {**self.api_data, **{'id': self.api_kong_id}}
+        data_w_id = {**self.api_data.as_dict(), **{'id': self.api_kong_id}}
 
         self.session_mock.post.return_value.json.return_value = data_w_id
         self.session_mock.put.return_value.json.return_value = data_w_id
@@ -76,9 +76,9 @@ class ApiAdminClientTest(unittest.TestCase):
                                                 uris=self.api_uris)
 
         # Verify
-        self.assertEqual(api_data['name'], self.api_name)
-        self.assertEqual(api_data['upstream_url'], self.api_upstream_url)
-        self.assertEqual(api_data['uris'], self.api_uris)
+        self.assertEqual(api_data.name, self.api_name)
+        self.assertEqual(api_data.upstream_url, self.api_upstream_url)
+        self.assertEqual(api_data.uris, self.api_uris)
 
     def test_api_admin_create_triggers_http_request_to_kong_server(self):
         """
@@ -93,7 +93,7 @@ class ApiAdminClientTest(unittest.TestCase):
                                     upstream_url=self.api_upstream_url,
                                     uris=self.api_uris)
         self.session_mock.post.assert_called_once_with(self.apis_endpoint,
-                                                       data=expected_api_data)
+                                                       json=expected_api_data.as_dict())
 
     def test_api_admin_create_using_api_data(self):
         """
@@ -109,7 +109,7 @@ class ApiAdminClientTest(unittest.TestCase):
         self.api_admin_client.create(orig_data)
 
         # Verify
-        self.session_mock.post.assert_called_once_with(self.apis_endpoint, data=orig_data)
+        self.session_mock.post.assert_called_once_with(self.apis_endpoint, json=orig_data.as_dict())
 
     def test_api_admin_delete_by_name(self):
         """
@@ -148,19 +148,17 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Exercise
         api_data.add_uri(new_uri)
-        response = self.api_admin_client.update(api_data['name'], **api_data)
+        response = self.api_admin_client.update(api_data.name, **api_data.as_dict())
 
         # Verify
         self.assertTrue(isinstance(response, ApiData))
         self.assertEqual(response, api_data)
         expected_data = {}
-        for k, v in api_data.items():
+        for k, v in api_data.as_dict().items():
             value = self.api_admin_client._stringify_if_list(v)
-            if isinstance(value, (str, list)) and not value:
-                continue
             expected_data[k] = value
         api_endpoint = self.apis_endpoint + self.api_name
-        self.session_mock.patch.assert_called_once_with(api_endpoint, data=expected_data)
+        self.session_mock.patch.assert_called_once_with(api_endpoint, json=expected_data)
 
     def test_api_admin_list(self):
         """
@@ -216,10 +214,11 @@ class ApiAdminClientTest(unittest.TestCase):
         self.assertRaisesRegex(KeyError, 'invalid_field',
                                lambda: self.api_admin_client.list(**invalid_query))
 
+    """
+    count is deprecated since kong 0.13.0
+
     def test_api_admin_count(self):
-        """
-            Test: ApiAdmin.count() returns the number of created apis
-        """
+        "Test: ApiAdmin.count() returns the number of created apis"
         # Setup
         amount = self.faker.random_int(1, 50)
         apis = []
@@ -238,7 +237,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertEqual(amount, actual_amount)
-
+    """
     def test_create_bad_request(self):
         # Setup
         self.session_mock.post.return_value.status_code = 409
@@ -287,7 +286,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(KeyError, r"unknown field",
                                lambda: self.api_admin_client
-                               .update(self.api_data['name'], **self.api_data))
+                               .update(self.api_data.name, **self.api_data.as_dict()))
 
     def test_update_not_existing_api(self):
         # Setup
@@ -297,7 +296,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(NameError, r"not found",
                                lambda: self.api_admin_client
-                               .update(self.api_data['name'], **self.api_data))
+                               .update(self.api_data.name, **self.api_data.as_dict()))
 
     def test_update_internal_server_error(self):
         # Setup
@@ -307,7 +306,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(Exception, r'internal server error',
                                lambda: self.api_admin_client
-                               .update(self.api_data['name'], **self.api_data))
+                               .update(self.api_data.name, **self.api_data.as_dict()))
 
     def test_list_internal_server_error(self):
         # Setup
@@ -327,7 +326,7 @@ class ApiAdminClientTest(unittest.TestCase):
     def test_retrieve_api(self):
         # Setup
         self.session_mock.get.return_value.status_code = 200
-        self.session_mock.get.return_value.json.return_value = dict(self.api_data)
+        self.session_mock.get.return_value.json.return_value = self.api_data.as_dict()
 
         # Exercise
         retrieved = self.api_admin_client.retrieve(self.api_name)
@@ -351,7 +350,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
-                                                        data={'hosts': 'host1, host2'})
+                                                        json={'hosts': 'host1, host2'})
 
     def test_update_api_removing_hosts(self):
         # Exercise
@@ -359,7 +358,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
-                                                        data={'hosts': ''})
+                                                        json={'hosts': ''})
 
     def test_update_api_removing_uris(self):
         # Exercise
@@ -367,4 +366,4 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.session_mock.patch.assert_called_once_with(self.apis_endpoint + self.api_name,
-                                                        data={'uris': ''})
+                                                        json={'uris': ''})
