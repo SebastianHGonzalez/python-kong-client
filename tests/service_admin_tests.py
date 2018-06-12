@@ -36,13 +36,12 @@ class ServiceAdminClientAbstractTest:
         self.service_retries = '5'
 
     def test_create_a_service_w_url(self):
-        created = self.service_admin_client.create(name=self.service_name,
-                                                   url=self.service_url)
+        created = self.service_admin_client._perform_create(name=self.service_name,
+                                                            url=self.service_url)
 
         self.assert_correctly_created(created)
 
     def assert_correctly_created(self, created):
-        created = created.as_dict()
 
         self.assertEquals(12, len(created))
         self.assertRegex(created['id'], '^[\w\d]{8}-([\w\d]{4}-){3}[\w\d]{12}$')
@@ -59,23 +58,23 @@ class ServiceAdminClientAbstractTest:
         self.assertTrue(isinstance(created['write_timeout'], int))
 
     def test_create_service(self):
-        created = self.service_admin_client.create(name=self.service_name,
-                                                   protocol=self.service_protocol,
-                                                   host=self.service_host,
-                                                   port=self.service_port,
-                                                   path=self.service_path)
+        created = self.service_admin_client._perform_create(name=self.service_name,
+                                                            protocol=self.service_protocol,
+                                                            host=self.service_host,
+                                                            port=self.service_port,
+                                                            path=self.service_path)
         self.assert_correctly_created(created)
 
     def test_create_w_invalid_params(self):
         self.assertRaises(SchemaViolation, lambda:
-                          self.service_admin_client.create(name=self.service_name,
-                                                           url=self.service_url,
-                                                           invalid='invalid')
+                          self.service_admin_client._perform_create(name=self.service_name,
+                                                                    url=self.service_url,
+                                                                    invalid='invalid')
                           )
 
     def test_update(self):
         # Exercise
-        self.service_admin_client.update(self.service_name, path='/new/path')
+        self.service_admin_client._perform_update(self.service_name, path='/new/path')
 
 
 class ServiceAdminClientMockedTest(ServiceAdminClientAbstractTest, unittest.TestCase):
@@ -156,9 +155,9 @@ class ServiceAdminClientServerTest(ServiceAdminClientAbstractTest, unittest.Test
         return ServiceAdminClient(self.kong_url, _session=requests.session())
 
     def tearDown(self):
-        self.service_admin_client.delete(self.service_name)
+        self.service_admin_client._perform_delete(self.service_name)
 
     def test_update(self):
-        self.service_admin_client.create(name=self.service_name,
-                                         url=self.service_url)
+        self.service_admin_client._perform_create(name=self.service_name,
+                                                  url=self.service_url)
         super().test_update()

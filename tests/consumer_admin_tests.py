@@ -44,7 +44,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_create_consumer_w_username(self):
         # Exercise
-        self.consumer_admin_client.create(username=self.consumer_username)
+        self.consumer_admin_client._perform_create(username=self.consumer_username)
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
@@ -52,7 +52,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_create_consumer_w_custom_id(self):
         # Exercise
-        self.consumer_admin_client.create(custom_id=self.consumer_custom_id)
+        self.consumer_admin_client._perform_create(custom_id=self.consumer_custom_id)
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
@@ -60,8 +60,8 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_create_consumer_w_custom_id_and_username(self):
         # Exercise
-        self.consumer_admin_client.create(username=self.consumer_username,
-                                          custom_id=self.consumer_custom_id)
+        self.consumer_admin_client._perform_create(username=self.consumer_username,
+                                                   custom_id=self.consumer_custom_id)
 
         # Verify
         self.session_mock.post.assert_called_once_with(self.consumer_endpoint,
@@ -71,7 +71,7 @@ class ApiAdminClientTest(unittest.TestCase):
     def test_create_consumer_wo_parameters(self):
         # Verify
         self.assertRaisesRegex(ValueError, r'username',
-                               self.consumer_admin_client.create)
+                               self.consumer_admin_client._perform_create)
 
     def test_create_conflict_username(self):
         # Setup
@@ -82,7 +82,8 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r'already exists',
-                               lambda: self.consumer_admin_client.create(self.consumer_username))
+                               lambda: self.consumer_admin_client._perform_create(
+                                   self.consumer_username))
 
     def test_create_internal_server_error(self):
         # Setup
@@ -91,11 +92,12 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(Exception, r'server error',
-                               lambda: self.consumer_admin_client.create(self.consumer_username))
+                               lambda: self.consumer_admin_client._perform_create(
+                                   self.consumer_username))
 
     def test_retrieve(self):
         # Exercise
-        self.consumer_admin_client.retrieve(self.consumer_username)
+        self.consumer_admin_client._perform_retrieve(self.consumer_username)
 
         # Verify
         self.session_mock.get\
@@ -105,7 +107,7 @@ class ApiAdminClientTest(unittest.TestCase):
         # Setup
         self.session_mock.get.return_value.json\
             .return_value = {'total': 1, 'data': [self.consumer_data]}
-        generator = self.consumer_admin_client.list()
+        generator = self.consumer_admin_client._perform_list()
 
         # Exercise
         generator.__next__()
@@ -118,9 +120,9 @@ class ApiAdminClientTest(unittest.TestCase):
         # Setup
         self.session_mock.get.return_value.json\
             .return_value = {'total': 1, 'data': [self.consumer_data]}
-        generator = self.consumer_admin_client.list(id=self.consumer_id,
-                                                    username=self.consumer_username,
-                                                    custom_id=self.consumer_custom_id)
+        generator = self.consumer_admin_client._perform_list(id=self.consumer_id,
+                                                             username=self.consumer_username,
+                                                             custom_id=self.consumer_custom_id)
 
         # Exercise
         generator.__next__()
@@ -139,7 +141,7 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
-                               lambda: self.consumer_admin_client.list(**invalid_query))
+                               lambda: self.consumer_admin_client._perform_list(**invalid_query))
 
     def test_update_consumer(self):
         # Setup
@@ -149,7 +151,7 @@ class ApiAdminClientTest(unittest.TestCase):
                 'custom_id': new_custom_id}
 
         # Exercise
-        self.consumer_admin_client.update(self.consumer_username, **data)
+        self.consumer_admin_client._perform_update(self.consumer_username, **data)
 
         # Verify
         self.session_mock.patch\
@@ -163,11 +165,11 @@ class ApiAdminClientTest(unittest.TestCase):
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
                                lambda: self.consumer_admin_client
-                               .update(self.consumer_username, **data))
+                               ._perform_update(self.consumer_username, **data))
 
     def test_delete_consumer(self):
         # Exercise
-        self.consumer_admin_client.delete(self.consumer_username)
+        self.consumer_admin_client._perform_delete(self.consumer_username)
 
         # Verify
         self.session_mock.delete\
@@ -179,4 +181,4 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(TypeError, 'str',
-                               lambda: self.consumer_admin_client.delete(invalid_value))
+                               lambda: self.consumer_admin_client._perform_delete(invalid_value))

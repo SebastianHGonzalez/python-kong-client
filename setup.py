@@ -7,7 +7,7 @@ from pip.req import parse_requirements
 
 from setuptools import setup
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,7 +27,7 @@ setup(
     name='python-kong-client',
     version=__version__,
     license='BSD',
-    description='A Python client for the Kong API 0.12.x (http://getkong.org/)',
+    description='A Python client for the Kong API 0.13.x (http://getkong.org/)',
     author='Sebastian Gonzalez',
     author_email='sebastian.h.gonzalez@gmail.com',
     url='',
