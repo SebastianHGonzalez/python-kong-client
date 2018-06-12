@@ -20,8 +20,17 @@ class ObjectData:
             self.__setattr__(k, val)
 
     @abstractmethod
-    def validate_schema(self, **kwargs):
+    def validate_obligatory_parameters(self, **kwargs):
         pass
+
+    @abstractmethod
+    def validate_semi_optional_parameters(self, **kwargs):  # pylint:disable=invalid-name
+        pass
+
+    def validate_schema(self, **kwargs):
+        self.validate_obligatory_parameters(**kwargs)
+        self.validate_semi_optional_parameters(**kwargs)
+        return kwargs
 
     @property
     @abstractmethod
@@ -34,7 +43,7 @@ class ObjectData:
 
         if not isinstance(value, (str, int, bool, list, dict)):
             raise ValueError('invalid value: %s value must be str, int, '
-                             'bool, list or dict' % parameter)
+                             'bool, _perform_list or dict' % parameter)
 
     def as_dict(self):
         return self.__dict__.copy()
@@ -57,21 +66,15 @@ class ApiData(ObjectData):
                'upstream_send_timeout', 'upstream_read_timeout',\
                'created_at'
 
-    @staticmethod
-    def satisfy_semi_optional_parameters(**kwargs):  # pylint: disable=invalid-name
-        return 'hosts' in kwargs\
-               or 'uris' in kwargs\
-               or 'methods' in kwargs
+    def validate_obligatory_parameters(self, **kwargs):
+        if 'upstream_url' not in kwargs:
+            raise SchemaViolation('name and upstream_url must be provided to _perform_create')
 
-    @staticmethod
-    def satisfy_obligatory_parameters(**kwargs):
-        return 'upstream_url' in kwargs
-
-    def validate_schema(self, **kwargs):
-        if not self.satisfy_obligatory_parameters(**kwargs):
-            raise SchemaViolation('name and upstream_url must be provided to create')
-        if not self.satisfy_semi_optional_parameters(**kwargs):
-            raise SchemaViolation('uris, methods or hosts must be provided to create')
+    def validate_semi_optional_parameters(self, **kwargs):
+        if not ('hosts' in kwargs
+                or 'uris' in kwargs
+                or 'methods' in kwargs):
+            raise SchemaViolation('uris, methods or hosts must be provided to _perform_create')
 
         return kwargs
 
@@ -89,6 +92,12 @@ class ApiData(ObjectData):
 
 
 class ServiceData(ObjectData):
+
+    def validate_semi_optional_parameters(self, **kwargs):
+        pass
+
+    def validate_obligatory_parameters(self, **kwargs):
+        pass
 
     def validate_schema(self, **kwargs):
 
@@ -127,3 +136,113 @@ class ServiceData(ObjectData):
     @property
     def url(self):
         return Url(scheme=self.protocol, host=self.host, port=self.port, path=self.path).url
+
+
+class PluginData(ObjectData):
+    def validate_semi_optional_parameters(self, **kwargs):
+        pass
+
+    def validate_obligatory_parameters(self, **kwargs):
+        if "name" not in kwargs:
+            raise SchemaViolation('name must be provided to _perform_create')
+
+    @property
+    def allowed_parameters(self):
+        return "id", "service_id", "consumer_id",\
+               "name", "config", "enabled",\
+               "created_at"
+
+
+class ConsumerData(ObjectData):
+    def validate_obligatory_parameters(self, **kwargs):
+        pass
+
+    @property
+    def allowed_parameters(self):
+        return "id", "username", "custom_id"
+
+    def validate_semi_optional_parameters(self, **kwargs):
+        if ("username" not in kwargs) and ("custom_id" not in kwargs):
+            raise SchemaViolation('at least one of username or '
+                                  'custom_id must be provided '
+                                  'to _perform_create')
+
+
+class RouteData(ObjectData):
+
+    def validate_semi_optional_parameters(self, **kwargs):
+        if not ('hosts' in kwargs
+                or 'paths' in kwargs
+                or 'methods' in kwargs):
+            raise SchemaViolation('uris, methods or hosts must be provided to _perform_create')
+
+    def validate_obligatory_parameters(self, **kwargs):
+        pass
+
+    @property
+    def allowed_parameters(self):
+        return "id", "created_at", "updated_at", \
+               "protocols", "methods", "hosts", \
+               "paths", "regex_priority", "strip_path", \
+               "preserve_host", "service"
+
+
+class TargetData(ObjectData):
+    def validate_semi_optional_parameters(self, **kwargs):
+        pass
+
+    def validate_obligatory_parameters(self, **kwargs):
+        if "target" not in kwargs:
+            raise SchemaViolation("target must be provided to _perform_create")
+
+    @property
+    def allowed_parameters(self):
+        return "id", "target", "weight", \
+               "upstream_id", "created_at"
+
+
+class UpstreamData(ObjectData):
+    @staticmethod
+    def allowed_update_params():
+        return [
+            'name', 'slots', 'hash_on', 'hash_fallback', 'hash_on_header',
+            'hash_fallback_header', 'healthchecks.active.timeout',
+            'healthchecks.active.concurrency',
+            'healthchecks.active.http_path',
+            'healthchecks.active.healthy.interval',
+            'healthchecks.active.healthy.http_statuses',
+            'healthchecks.active.healthy.successes',
+            'healthchecks.active.unhealthy.interval',
+            'healthchecks.active.unhealthy.http_statuses',
+            'healthchecks.active.unhealthy.tcp_failures',
+            'healthchecks.active.unhealthy.timeouts',
+            'healthchecks.active.unhealthy.http_failures',
+            'healthchecks.passive.healthy.http_statuses',
+            'healthchecks.passive.healthy.successes',
+            'healthchecks.passive.unhealthy.http_statuses',
+            'healthchecks.passive.unhealthy.tcp_failures',
+            'healthchecks.passive.unhealthy.timeouts',
+            'healthchecks.passive.unhealthy.http_failures',
+        ]
+
+    def validate_semi_optional_parameters(self, **kwargs):
+        if ("hash_on" in kwargs) \
+                and (kwargs['hash_on'].lower() == "header") \
+                and ("hash_on_header" not in kwargs):
+            raise SchemaViolation("hash_on_header required when "
+                                  "hash_on is set to header")
+
+        if("hash_fallback" in kwargs) \
+                and (kwargs['hash_fallback'].lower() == 'header') \
+                and ('hash_fallback_header' not in kwargs):
+            raise SchemaViolation("hash_fallback_header required "
+                                  "when hash_fallback is set to "
+                                  "header")
+
+    def validate_obligatory_parameters(self, **kwargs):
+        if "name" not in kwargs:
+            raise SchemaViolation("name must be provided to _perform_create")
+
+    @property
+    def allowed_parameters(self):
+        return self.allowed_update_params()
