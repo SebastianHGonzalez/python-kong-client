@@ -4,7 +4,7 @@
 ## Description
 This is a small library to provide [kong](http://getkong.org/) server administration functionality inside your python application
 
-This library is currently in version 0.1.6 and it was built around [kong 0.13.x specifications](https://getkong.org/docs/0.13.x/admin-api/)
+This library is currently in version 0.1.7 and it was built around [kong 0.13.x specifications](https://getkong.org/docs/0.13.x/admin-api/)
 
 ## Features
 Supported Information Routes
