@@ -55,7 +55,8 @@ class PluginAdminTest(unittest.TestCase):
     def test_create_plugin_for_specific_api_and_every_consumer(self):
 
         # Exercise
-        self.plugin_admin_client._perform_create(self.plugin_name, api_name_or_id=self.api_name_or_id)
+        self.plugin_admin_client._perform_create(
+            self.plugin_name, api_name_or_id=self.api_name_or_id)
 
         # Verify
         expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/plugins/'
@@ -131,7 +132,8 @@ class PluginAdminTest(unittest.TestCase):
     def test_list_plugins_w_invalid_parameters(self):
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
-                               lambda: self.plugin_admin_client._perform_list(invalid_field='invalid_value'))
+                               lambda: self.plugin_admin_client._perform_list(
+                                   invalid_field='invalid_value'))
 
     def test_detete_plugin(self):
         # Exercise

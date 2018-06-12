@@ -87,7 +87,8 @@ class ApiAdminClientTest(unittest.TestCase):
             to kong server to _perform_create the api in the server.
         """
         # Exercise
-        self.api_admin_client._perform_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client._perform_create(
+            self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Verify
         expected_api_data = ApiData(name=self.api_name,
@@ -117,7 +118,8 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin._perform_delete(api_name) deletes it from kong server
         """
         # Setup
-        self.api_admin_client._perform_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client._perform_create(
+            self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
         self.api_admin_client._perform_delete(self.api_name)
@@ -131,7 +133,8 @@ class ApiAdminClientTest(unittest.TestCase):
             Test: ApiAdmin._perform_delete(api_kong_id) deletes it from kong server
         """
         # Setup
-        self.api_admin_client._perform_create(self.api_name, self.api_upstream_url, uris=self.api_uris)
+        self.api_admin_client._perform_create(
+            self.api_name, self.api_upstream_url, uris=self.api_uris)
 
         # Exercise
         self.api_admin_client._perform_delete(self.api_kong_id)
@@ -163,7 +166,8 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_api_admin_list(self):
         """
-            Test: ApiAdmin._perform_list() returns a generator ApiData instances of all apis in kong server
+            Test: ApiAdmin._perform_list() returns
+            a generator ApiData instances of all apis in kong server
         """
         # Setup
         amount = self.faker.random_int(1, 50)

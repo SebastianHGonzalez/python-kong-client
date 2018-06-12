@@ -104,7 +104,8 @@ class RouteAdminServerTests(RouteAdminAbstractTests, unittest.TestCase):
         # Setup
         methods = ['GET', 'POST']
         # Exercise
-        self.created = self.route_admin_client._perform_create(service=service_or_id, methods=methods)
+        self.created = self.route_admin_client._perform_create(
+            service=service_or_id, methods=methods)
         # Verify
         self.assertEqual(methods, self.created['methods'])
 
@@ -112,6 +113,7 @@ class RouteAdminServerTests(RouteAdminAbstractTests, unittest.TestCase):
         routes_list = list(result)
         self.assertEqual(0, len(routes_list))
 
-        self.created = self.route_admin_client._perform_create(self.service.id, paths=['/test-path'])
+        self.created = self.route_admin_client._perform_create(
+            self.service.id, paths=['/test-path'])
         routes_list = list(self.route_admin_client.list_associated_to_service(self.service.id))
         self.assertEqual(1, len(routes_list))

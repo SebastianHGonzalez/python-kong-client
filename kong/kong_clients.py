@@ -1,11 +1,12 @@
 from abc import abstractmethod
 from urllib3.util.url import Url, parse_url
 from requests import session
-from kong.structures import ApiData, ServiceData, ConsumerData, PluginData, RouteData, TargetData, UpstreamData
+from kong.structures import ApiData, ServiceData, ConsumerData, \
+    PluginData, RouteData, TargetData, UpstreamData
 from kong.exceptions import SchemaViolation
 
 
-class RestClient:
+class RestClient:  # pylint:disable=too-few-public-methods
 
     def __init__(self, url, _session=session()):
         self._session = _session
@@ -65,15 +66,14 @@ class KongAbstractClient(RestClient):
         return self._object_data_class(**data_dict)
 
     def _to_list_object_data(self, list_data_dict):
-        return map(lambda x: self._to_object_data(x), list_data_dict)
+        return map(self._to_object_data, list_data_dict)
 
     def create(self, name, **kwargs):
         data_dict = self._perform_create(name, **kwargs)
         return self._to_object_data(data_dict)
 
     def delete(self, pk_or_id):
-        data_dict = self._perform_delete(pk_or_id)
-        return self._to_object_data(data_dict)
+        self._perform_delete(pk_or_id)
 
     def list(self, size, **kwargs):
         data_dict = self._perform_list(size, **kwargs)
@@ -483,26 +483,7 @@ class UpstreamAdminClient(KongAbstractClient):
 
     @property
     def _allowed_update_params(self):
-        return [
-            'name', 'slots', 'hash_on', 'hash_fallback', 'hash_on_header',
-            'hash_fallback_header', 'healthchecks.active.timeout',
-            'healthchecks.active.concurrency',
-            'healthchecks.active.http_path',
-            'healthchecks.active.healthy.interval',
-            'healthchecks.active.healthy.http_statuses',
-            'healthchecks.active.healthy.successes',
-            'healthchecks.active.unhealthy.interval',
-            'healthchecks.active.unhealthy.http_statuses',
-            'healthchecks.active.unhealthy.tcp_failures',
-            'healthchecks.active.unhealthy.timeouts',
-            'healthchecks.active.unhealthy.http_failures',
-            'healthchecks.passive.healthy.http_statuses',
-            'healthchecks.passive.healthy.successes',
-            'healthchecks.passive.unhealthy.http_statuses',
-            'healthchecks.passive.unhealthy.tcp_failures',
-            'healthchecks.passive.unhealthy.timeouts',
-            'healthchecks.passive.unhealthy.http_failures',
-        ]
+        return self._object_data_class.allowed_update_params()
 
     @property
     def _allowed_query_params(self):

@@ -24,7 +24,7 @@ class ObjectData:
         pass
 
     @abstractmethod
-    def validate_semi_optional_parameters(self, **kwargs):
+    def validate_semi_optional_parameters(self, **kwargs):  # pylint:disable=invalid-name
         pass
 
     def validate_schema(self, **kwargs):
@@ -65,14 +65,6 @@ class ApiData(ObjectData):
                'http_if_terminated', 'upstream_connect_timeout',\
                'upstream_send_timeout', 'upstream_read_timeout',\
                'created_at'
-
-    @staticmethod
-    def satisfy_semi_optional_parameters(**kwargs):  # pylint: disable=invalid-name
-        return
-
-    @staticmethod
-    def satisfy_obligatory_parameters(**kwargs):
-        return
 
     def validate_obligatory_parameters(self, **kwargs):
         if 'upstream_url' not in kwargs:
@@ -171,7 +163,9 @@ class ConsumerData(ObjectData):
 
     def validate_semi_optional_parameters(self, **kwargs):
         if ("username" not in kwargs) and ("custom_id" not in kwargs):
-            raise SchemaViolation('at least one of username or custom_id must be provided to _perform_create')
+            raise SchemaViolation('at least one of username or '
+                                  'custom_id must be provided '
+                                  'to _perform_create')
 
 
 class RouteData(ObjectData):
@@ -208,26 +202,8 @@ class TargetData(ObjectData):
 
 
 class UpstreamData(ObjectData):
-    def validate_semi_optional_parameters(self, **kwargs):
-        if ("hash_on" in kwargs) \
-                and (kwargs['hash_on'].lower() == "header") \
-                and ("hash_on_header" not in kwargs):
-            raise SchemaViolation("hash_on_header required when "
-                                  "hash_on is set to header")
-
-        if("hash_fallback" in kwargs) \
-                and (kwargs['hash_fallback'].lower() == 'header') \
-                and ('hash_fallback_header' not in kwargs):
-            raise SchemaViolation("hash_fallback_header required "
-                                  "when hash_fallback is set to "
-                                  "header")
-
-    def validate_obligatory_parameters(self, **kwargs):
-        if "name" not in kwargs:
-            raise SchemaViolation("name must be provided to _perform_create")
-
-    @property
-    def allowed_parameters(self):
+    @staticmethod
+    def allowed_update_params():
         return [
             'name', 'slots', 'hash_on', 'hash_fallback', 'hash_on_header',
             'hash_fallback_header', 'healthchecks.active.timeout',
@@ -248,3 +224,25 @@ class UpstreamData(ObjectData):
             'healthchecks.passive.unhealthy.timeouts',
             'healthchecks.passive.unhealthy.http_failures',
         ]
+
+    def validate_semi_optional_parameters(self, **kwargs):
+        if ("hash_on" in kwargs) \
+                and (kwargs['hash_on'].lower() == "header") \
+                and ("hash_on_header" not in kwargs):
+            raise SchemaViolation("hash_on_header required when "
+                                  "hash_on is set to header")
+
+        if("hash_fallback" in kwargs) \
+                and (kwargs['hash_fallback'].lower() == 'header') \
+                and ('hash_fallback_header' not in kwargs):
+            raise SchemaViolation("hash_fallback_header required "
+                                  "when hash_fallback is set to "
+                                  "header")
+
+    def validate_obligatory_parameters(self, **kwargs):
+        if "name" not in kwargs:
+            raise SchemaViolation("name must be provided to _perform_create")
+
+    @property
+    def allowed_parameters(self):
+        return self.allowed_update_params()

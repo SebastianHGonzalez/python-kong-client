@@ -82,7 +82,8 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r'already exists',
-                               lambda: self.consumer_admin_client._perform_create(self.consumer_username))
+                               lambda: self.consumer_admin_client._perform_create(
+                                   self.consumer_username))
 
     def test_create_internal_server_error(self):
         # Setup
@@ -91,7 +92,8 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(Exception, r'server error',
-                               lambda: self.consumer_admin_client._perform_create(self.consumer_username))
+                               lambda: self.consumer_admin_client._perform_create(
+                                   self.consumer_username))
 
     def test_retrieve(self):
         # Exercise
