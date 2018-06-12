@@ -10,7 +10,7 @@ class ObjectData:
 
     def __init__(self, name, **kwargs):
 
-        validated = self.validate_schema(**kwargs)
+        validated = self.validate_schema(name=name, **kwargs)
 
         self.validate_parameter('name', name)
         self.name = name
