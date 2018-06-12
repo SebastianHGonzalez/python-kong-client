@@ -10,7 +10,7 @@ class RestClientTest(unittest.TestCase):
         url = 'http://foo.bar'
 
         # Exercise
-        normalized_url = RestClient.normalize_url(url)
+        normalized_url = RestClient._normalize_url(url)
 
         # Validate
         self.assertEqual('http://foo.bar/', normalized_url)
@@ -20,27 +20,27 @@ class RestClientTest(unittest.TestCase):
         url = 'foo.bar/'
 
         # Exercise
-        normalized_url = RestClient.normalize_url(url)
+        normalized_url = RestClient._normalize_url(url)
 
         # Validate
         self.assertEqual('http://foo.bar/', normalized_url)
 
     def test_normalize_url_w_path_wo_trailing_slash(self):
         # Setup
-        url = 'http://foo.bar/endpoint'
+        url = 'http://foo.bar/_endpoint'
 
         # Exercise
-        normalized_url = RestClient.normalize_url(url)
+        normalized_url = RestClient._normalize_url(url)
 
         # Validate
-        self.assertEqual('http://foo.bar/endpoint/', normalized_url)
+        self.assertEqual('http://foo.bar/_endpoint/', normalized_url)
 
     def test_normalize_url_w_quey_params(self):
         # Setup
         url = 'http://foo.bar/?query=1'
 
         # Exercise
-        normalized_url = RestClient.normalize_url(url)
+        normalized_url = RestClient._normalize_url(url)
 
         # Validate
         self.assertEqual('http://foo.bar/', normalized_url)

@@ -43,7 +43,7 @@ class ObjectData:
 
         if not isinstance(value, (str, int, bool, list, dict)):
             raise ValueError('invalid value: %s value must be str, int, '
-                             'bool, perform_list or dict' % parameter)
+                             'bool, _perform_list or dict' % parameter)
 
     def as_dict(self):
         return self.__dict__.copy()
@@ -76,13 +76,13 @@ class ApiData(ObjectData):
 
     def validate_obligatory_parameters(self, **kwargs):
         if 'upstream_url' not in kwargs:
-            raise SchemaViolation('name and upstream_url must be provided to perform_create')
+            raise SchemaViolation('name and upstream_url must be provided to _perform_create')
 
     def validate_semi_optional_parameters(self, **kwargs):
         if not ('hosts' in kwargs
                 or 'uris' in kwargs
                 or 'methods' in kwargs):
-            raise SchemaViolation('uris, methods or hosts must be provided to perform_create')
+            raise SchemaViolation('uris, methods or hosts must be provided to _perform_create')
 
         return kwargs
 
@@ -152,7 +152,7 @@ class PluginData(ObjectData):
 
     def validate_obligatory_parameters(self, **kwargs):
         if "name" not in kwargs:
-            raise SchemaViolation('name must be provided to perform_create')
+            raise SchemaViolation('name must be provided to _perform_create')
 
     @property
     def allowed_parameters(self):
@@ -171,7 +171,7 @@ class ConsumerData(ObjectData):
 
     def validate_semi_optional_parameters(self, **kwargs):
         if ("username" not in kwargs) and ("custom_id" not in kwargs):
-            raise SchemaViolation('at least one of username or custom_id must be provided to perform_create')
+            raise SchemaViolation('at least one of username or custom_id must be provided to _perform_create')
 
 
 class RouteData(ObjectData):
@@ -180,7 +180,7 @@ class RouteData(ObjectData):
         if not ('hosts' in kwargs
                 or 'paths' in kwargs
                 or 'methods' in kwargs):
-            raise SchemaViolation('uris, methods or hosts must be provided to perform_create')
+            raise SchemaViolation('uris, methods or hosts must be provided to _perform_create')
 
     def validate_obligatory_parameters(self, **kwargs):
         pass
@@ -199,7 +199,7 @@ class TargetData(ObjectData):
 
     def validate_obligatory_parameters(self, **kwargs):
         if "target" not in kwargs:
-            raise SchemaViolation("target must be provided to perform_create")
+            raise SchemaViolation("target must be provided to _perform_create")
 
     @property
     def allowed_parameters(self):
@@ -224,7 +224,7 @@ class UpstreamData(ObjectData):
 
     def validate_obligatory_parameters(self, **kwargs):
         if "name" not in kwargs:
-            raise SchemaViolation("name must be provided to perform_create")
+            raise SchemaViolation("name must be provided to _perform_create")
 
     @property
     def allowed_parameters(self):
