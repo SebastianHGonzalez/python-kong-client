@@ -36,7 +36,7 @@ class PluginAdminTest(unittest.TestCase):
     def test_create_plugin_for_all_apis_and_consumers(self):
 
         # Exercise
-        self.plugin_admin_client.create(self.plugin_name)
+        self.plugin_admin_client.perform_create(self.plugin_name)
 
         # Verify
         expected_data = {'name': self.plugin_name}
@@ -45,7 +45,7 @@ class PluginAdminTest(unittest.TestCase):
     def test_create_plugin_for_all_apis_and_specific_consumer(self):
 
         # Exercise
-        self.plugin_admin_client.create(self.plugin_name, self.consumer_id)
+        self.plugin_admin_client.perform_create(self.plugin_name, self.consumer_id)
 
         # Verify
         expected_data = {'name': self.plugin_name,
@@ -55,7 +55,7 @@ class PluginAdminTest(unittest.TestCase):
     def test_create_plugin_for_specific_api_and_every_consumer(self):
 
         # Exercise
-        self.plugin_admin_client.create(self.plugin_name, api_name_or_id=self.api_name_or_id)
+        self.plugin_admin_client.perform_create(self.plugin_name, api_name_or_id=self.api_name_or_id)
 
         # Verify
         expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/plugins/'
@@ -67,7 +67,7 @@ class PluginAdminTest(unittest.TestCase):
         config = {'setting': 'value'}
 
         # Exercise
-        self.plugin_admin_client.create(self.plugin_name, config=config)
+        self.plugin_admin_client.perform_create(self.plugin_name, config=config)
 
         # Verify
         expected_data = {'name': self.plugin_name,
@@ -76,7 +76,7 @@ class PluginAdminTest(unittest.TestCase):
 
     def test_retrieve_existing_plugin(self):
         # Exercise
-        self.plugin_admin_client.retrieve(self.plugin_id)
+        self.plugin_admin_client.perform_retrieve(self.plugin_id)
 
         # Verify
         self.session_mock.get.assert_called_once_with(self.plugins_endpoint + self.plugin_id)
@@ -88,7 +88,7 @@ class PluginAdminTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, 'Not found',
-                               lambda: self.plugin_admin_client.retrieve(self.plugin_id))
+                               lambda: self.plugin_admin_client.perform_retrieve(self.plugin_id))
 
     def test_list_plugins(self):
         # Setup
@@ -96,7 +96,7 @@ class PluginAdminTest(unittest.TestCase):
             .return_value = {'total': 1, 'data': [self.plugin_json]}
 
         # Exercise
-        generator = self.plugin_admin_client.list()
+        generator = self.plugin_admin_client.perform_list()
 
         plugin_json = generator.__next__()
 
@@ -111,10 +111,10 @@ class PluginAdminTest(unittest.TestCase):
         self.session_mock.get.return_value.json = lambda: {'total': 1, 'data': [self.plugin_json]}
 
         # Exercise
-        generator = self.plugin_admin_client.list(id=self.plugin_id,
-                                                  name=self.plugin_name,
-                                                  api_id=self.api_name_or_id,
-                                                  consumer_id=self.consumer_id)
+        generator = self.plugin_admin_client.perform_list(id=self.plugin_id,
+                                                          name=self.plugin_name,
+                                                          api_id=self.api_name_or_id,
+                                                          consumer_id=self.consumer_id)
 
         plugin_json = generator.__next__()
 
@@ -131,11 +131,11 @@ class PluginAdminTest(unittest.TestCase):
     def test_list_plugins_w_invalid_parameters(self):
         # Verify
         self.assertRaisesRegex(KeyError, 'invalid_field',
-                               lambda: self.plugin_admin_client.list(invalid_field='invalid_value'))
+                               lambda: self.plugin_admin_client.perform_list(invalid_field='invalid_value'))
 
     def test_detete_plugin(self):
         # Exercise
-        self.plugin_admin_client.delete(self.plugin_id)
+        self.plugin_admin_client.perform_delete(self.plugin_id)
 
         # Verify
         expected_url = self.plugins_endpoint + self.plugin_id
@@ -143,7 +143,7 @@ class PluginAdminTest(unittest.TestCase):
 
     def test_delete_plugin_w_api_pk(self):
         # Exercise
-        self.plugin_admin_client.delete(self.plugin_id, api_pk=self.api_name_or_id)
+        self.plugin_admin_client.perform_delete(self.plugin_id, api_pk=self.api_name_or_id)
 
         # Verify
         expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/plugins/' + self.plugin_id
@@ -158,7 +158,7 @@ class PluginAdminTest(unittest.TestCase):
 
         # Verify
         self.session_mock.get.assert_called_once_with(self.plugins_endpoint + 'enabled/')
-        self.assertEqual(retrieved, [])
+        self.assertEqual(list(retrieved), [])
 
     def test_retrieve_schema(self):
         # Setup
@@ -188,9 +188,9 @@ class PluginAdminTest(unittest.TestCase):
         config = {'setting': 'value'}
 
         # Exercise
-        self.plugin_admin_client.update(self.plugin_id,
-                                        api_pk=self.api_name_or_id,
-                                        config=config, **data)
+        self.plugin_admin_client.perform_update(self.plugin_id,
+                                                api_pk=self.api_name_or_id,
+                                                config=config, **data)
 
         # Verify
         expected_url = self.kong_url + 'apis/' + self.api_name_or_id + '/plugins/' + self.plugin_id
@@ -208,7 +208,7 @@ class PluginAdminTest(unittest.TestCase):
         config = {'setting': 'value'}
 
         # Exercise
-        self.plugin_admin_client.update(self.plugin_id, config=config, **data)
+        self.plugin_admin_client.perform_update(self.plugin_id, config=config, **data)
 
         # Verify
         expected_url = self.plugins_endpoint + self.plugin_id
@@ -224,7 +224,7 @@ class PluginAdminTest(unittest.TestCase):
                 'consumer_id': self.consumer_id}
 
         # Exercise
-        self.plugin_admin_client.update(self.plugin_id, **data)
+        self.plugin_admin_client.perform_update(self.plugin_id, **data)
 
         # Verify
         expected_url = self.plugins_endpoint + self.plugin_id

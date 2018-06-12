@@ -66,7 +66,7 @@ class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
         # Setup
         methods = ['GET', 'POST']
         # Exercise
-        self.route_admin_client.create(service=service_id, methods=methods)
+        self.route_admin_client.perform_create(service=service_id, methods=methods)
         # Verify
         expected_data = {'service': {'id': self.service.id}, 'methods': methods}
         self.session.post.assert_called_once_with(self.routes_endpoint, json=expected_data)
@@ -92,19 +92,19 @@ class RouteAdminServerTests(RouteAdminAbstractTests, unittest.TestCase):
 
         self.service_admin_client = ServiceAdminClient(self.kong_url)
 
-        self.service = self.service_admin_client.create('test-service',
-                                                        url='http://test.service/path')
+        self.service = self.service_admin_client.perform_create('test-service',
+                                                                url='http://test.service/path')
         super().setUp()
 
     def tearDown(self):
-        self.route_admin_client.delete(self.created['id'])
-        self.service_admin_client.delete(self.service.id)
+        self.route_admin_client.perform_delete(self.created['id'])
+        self.service_admin_client.perform_delete(self.service.id)
 
     def create_and_assert(self, service_or_id):
         # Setup
         methods = ['GET', 'POST']
         # Exercise
-        self.created = self.route_admin_client.create(service=service_or_id, methods=methods)
+        self.created = self.route_admin_client.perform_create(service=service_or_id, methods=methods)
         # Verify
         self.assertEqual(methods, self.created['methods'])
 
@@ -112,6 +112,6 @@ class RouteAdminServerTests(RouteAdminAbstractTests, unittest.TestCase):
         routes_list = list(result)
         self.assertEqual(0, len(routes_list))
 
-        self.created = self.route_admin_client.create(self.service.id, paths=['/test-path'])
+        self.created = self.route_admin_client.perform_create(self.service.id, paths=['/test-path'])
         routes_list = list(self.route_admin_client.list_associated_to_service(self.service.id))
         self.assertEqual(1, len(routes_list))

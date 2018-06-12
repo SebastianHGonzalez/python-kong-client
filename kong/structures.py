@@ -28,8 +28,9 @@ class ObjectData:
         pass
 
     def validate_schema(self, **kwargs):
-        self.validate_obligatory_parameters(kwargs)
-        self.validate_semi_optional_parameters(kwargs)
+        self.validate_obligatory_parameters(**kwargs)
+        self.validate_semi_optional_parameters(**kwargs)
+        return kwargs
 
     @property
     @abstractmethod
@@ -42,7 +43,7 @@ class ObjectData:
 
         if not isinstance(value, (str, int, bool, list, dict)):
             raise ValueError('invalid value: %s value must be str, int, '
-                             'bool, list or dict' % parameter)
+                             'bool, perform_list or dict' % parameter)
 
     def as_dict(self):
         return self.__dict__.copy()
@@ -75,13 +76,13 @@ class ApiData(ObjectData):
 
     def validate_obligatory_parameters(self, **kwargs):
         if 'upstream_url' not in kwargs:
-            raise SchemaViolation('name and upstream_url must be provided to create')
+            raise SchemaViolation('name and upstream_url must be provided to perform_create')
 
     def validate_semi_optional_parameters(self, **kwargs):
         if not ('hosts' in kwargs
                 or 'uris' in kwargs
                 or 'methods' in kwargs):
-            raise SchemaViolation('uris, methods or hosts must be provided to create')
+            raise SchemaViolation('uris, methods or hosts must be provided to perform_create')
 
         return kwargs
 
@@ -151,7 +152,7 @@ class PluginData(ObjectData):
 
     def validate_obligatory_parameters(self, **kwargs):
         if "name" not in kwargs:
-            raise SchemaViolation('name must be provided to create')
+            raise SchemaViolation('name must be provided to perform_create')
 
     @property
     def allowed_parameters(self):
@@ -170,7 +171,7 @@ class ConsumerData(ObjectData):
 
     def validate_semi_optional_parameters(self, **kwargs):
         if ("username" not in kwargs) and ("custom_id" not in kwargs):
-            raise SchemaViolation('at least one of username or custom_id must be provided to create')
+            raise SchemaViolation('at least one of username or custom_id must be provided to perform_create')
 
 
 class RouteData(ObjectData):
@@ -179,7 +180,7 @@ class RouteData(ObjectData):
         if not ('hosts' in kwargs
                 or 'paths' in kwargs
                 or 'methods' in kwargs):
-            raise SchemaViolation('uris, methods or hosts must be provided to create')
+            raise SchemaViolation('uris, methods or hosts must be provided to perform_create')
 
     def validate_obligatory_parameters(self, **kwargs):
         pass
@@ -198,7 +199,7 @@ class TargetData(ObjectData):
 
     def validate_obligatory_parameters(self, **kwargs):
         if "target" not in kwargs:
-            raise SchemaViolation("target must be provided to create")
+            raise SchemaViolation("target must be provided to perform_create")
 
     @property
     def allowed_parameters(self):
@@ -223,9 +224,27 @@ class UpstreamData(ObjectData):
 
     def validate_obligatory_parameters(self, **kwargs):
         if "name" not in kwargs:
-            raise SchemaViolation("name must be provided to create")
+            raise SchemaViolation("name must be provided to perform_create")
 
     @property
     def allowed_parameters(self):
-        return "name", "hash_on", "hash_fallback", \
-               "healthchecks", "slots"
+        return [
+            'name', 'slots', 'hash_on', 'hash_fallback', 'hash_on_header',
+            'hash_fallback_header', 'healthchecks.active.timeout',
+            'healthchecks.active.concurrency',
+            'healthchecks.active.http_path',
+            'healthchecks.active.healthy.interval',
+            'healthchecks.active.healthy.http_statuses',
+            'healthchecks.active.healthy.successes',
+            'healthchecks.active.unhealthy.interval',
+            'healthchecks.active.unhealthy.http_statuses',
+            'healthchecks.active.unhealthy.tcp_failures',
+            'healthchecks.active.unhealthy.timeouts',
+            'healthchecks.active.unhealthy.http_failures',
+            'healthchecks.passive.healthy.http_statuses',
+            'healthchecks.passive.healthy.successes',
+            'healthchecks.passive.unhealthy.http_statuses',
+            'healthchecks.passive.unhealthy.tcp_failures',
+            'healthchecks.passive.unhealthy.timeouts',
+            'healthchecks.passive.unhealthy.http_failures',
+        ]
