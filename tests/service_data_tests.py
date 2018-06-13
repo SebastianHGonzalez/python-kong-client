@@ -40,7 +40,7 @@ class ServiceDataTest(unittest.TestCase):
 
     def test_create_service(self):
 
-        created = ServiceData(self.service_name,
+        created = ServiceData(name=self.service_name,
                               protocol=self.service_protocol,
                               host=self.service_host)
 
@@ -50,7 +50,7 @@ class ServiceDataTest(unittest.TestCase):
 
     def test_service_data_as_dict(self):
 
-        created = ServiceData(self.service_name,
+        created = ServiceData(name=self.service_name,
                               protocol=self.service_protocol,
                               host=self.service_host,
                               connect_timeout=self.service_connect_timeout,
@@ -76,7 +76,7 @@ class ServiceDataTest(unittest.TestCase):
 
     def test_create_service_using_url(self):
 
-        created = ServiceData(self.service_name, url=self.service_url)
+        created = ServiceData(name=self.service_name, url=self.service_url)
         print(created)
         self.assertEqual(self.service_protocol, created.protocol)
         self.assertEqual(self.service_host, created.host)

@@ -189,7 +189,12 @@ class ApiAdminClientTest(unittest.TestCase):
 
     def test_api_admin_list_w_parameters(self):
         # Setup
-        self.session_mock.get.return_value.json.return_value = {'data': [self.api_data.as_dict()], 'total': 1}
+        self.session_mock.get.return_value.json.return_value = {
+            'data': [
+                self.api_data.as_dict()
+            ],
+            'total': 1
+        }
 
         # Exercise
         generator = self.api_admin_client.list(id=self.api_kong_id,
@@ -245,9 +250,11 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(NameError, r'bad request',
-                               lambda: self.api_admin_client.create(name=self.api_name,
-                                                                    upstream_url=self.api_upstream_url,
-                                                                    uris=self.api_uris))
+                               lambda: self.api_admin_client.create(
+                                   name=self.api_name,
+                                   upstream_url=self.api_upstream_url,
+                                   uris=self.api_uris
+                               ))
 
     def test_create_internal_server_error(self):
         # Setup
@@ -256,9 +263,11 @@ class ApiAdminClientTest(unittest.TestCase):
 
         # Verify
         self.assertRaisesRegex(Exception, r'internal server error',
-                               lambda: self.api_admin_client.create(name=self.api_name,
-                                                                    upstream_url=self.api_upstream_url,
-                                                                    uris=self.api_uris))
+                               lambda: self.api_admin_client.create(
+                                   name=self.api_name,
+                                   upstream_url=self.api_upstream_url,
+                                   uris=self.api_uris
+                               ))
 
     def test_delete_not_existing_api(self):
         # Setup

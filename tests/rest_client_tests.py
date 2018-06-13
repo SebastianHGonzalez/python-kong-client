@@ -27,13 +27,13 @@ class RestClientTest(unittest.TestCase):
 
     def test_normalize_url_w_path_wo_trailing_slash(self):
         # Setup
-        url = 'http://foo.bar/_endpoint'
+        url = 'http://foo.bar/endpoint'
 
         # Exercise
         normalized_url = RestClient._normalize_url(url)
 
         # Validate
-        self.assertEqual('http://foo.bar/_endpoint/', normalized_url)
+        self.assertEqual('http://foo.bar/endpoint/', normalized_url)
 
     def test_normalize_url_w_quey_params(self):
         # Setup
