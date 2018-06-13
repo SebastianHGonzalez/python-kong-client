@@ -36,19 +36,20 @@ class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
 
     def setUp(self):
         self.service_dict = {
-            "id": "4e13f54a-bbf1-47a8-8777-255fed7116f2",
-            "created_at": 1488869076800,
-            "updated_at": 1488869076800,
-            "connect_timeout": 60000,
-            "protocol": "http",
-            "host": "example.org",
-            "port": 80,
-            "path": "/api",
-            "name": "example-service",
-            "retries": 5,
-            "read_timeout": 60000,
-            "write_timeout": 60000
+            "id": "22108377-8f26-4c0e-bd9e-2962c1d6b0e6",
+            "created_at": 14888869056483,
+            "updated_at": 14888869056483,
+            "protocols": ["http", "https"],
+            "methods": None,
+            "hosts": ["example.com"],
+            "paths": None,
+            "regex_priority": 0,
+            "strip_path": True,
+            "preserve_host": False,
+            "service": {
+                "id": "4e13f54a-bbf1-47a8-8777-255fed7116f2"
             }
+        }
 
         self.mock_setup()
         super().setUp()
@@ -57,16 +58,19 @@ class RouteAdminMockedTests(RouteAdminAbstractTests, unittest.TestCase):
         self.service = MagicMock()
         self.service.id = "4e13f54a-bbf1-47a8-8777-255fed7116f2"
         self.session = MagicMock()
+
         self.session.post.return_value.status_code = 201
+
         self.session.post.return_value.json.return_value = self.service_dict
+
         self.kong_url = 'http://kong.url/'
         self.routes_endpoint = self.kong_url + 'routes/'
 
     def create_and_assert(self, service_id):
         # Setup
-        methods = ['GET', 'POST']
+        methods = ['GET']
         # Exercise
-        self.route_admin_client._perform_create(service=service_id, methods=methods)
+        self.route_admin_client.create(service=service_id, methods=methods)
         # Verify
         expected_data = {'service': {'id': self.service.id}, 'methods': methods}
         self.session.post.assert_called_once_with(self.routes_endpoint, json=expected_data)
@@ -92,28 +96,30 @@ class RouteAdminServerTests(RouteAdminAbstractTests, unittest.TestCase):
 
         self.service_admin_client = ServiceAdminClient(self.kong_url)
 
-        self.service = self.service_admin_client._perform_create('test-service',
-                                                                 url='http://test.service/path')
+        self.service = self.service_admin_client.create(name='test-service',
+                                                        url='http://test.service/path')
         super().setUp()
 
     def tearDown(self):
-        self.route_admin_client._perform_delete(self.created['id'])
-        self.service_admin_client._perform_delete(self.service.id)
+        self.route_admin_client.delete(self.created.id)
+        self.created = None
+        self.service_admin_client.delete(self.service.id)
+        self.service = None
 
     def create_and_assert(self, service_or_id):
         # Setup
         methods = ['GET', 'POST']
         # Exercise
-        self.created = self.route_admin_client._perform_create(
+        self.created = self.route_admin_client.create(
             service=service_or_id, methods=methods)
         # Verify
-        self.assertEqual(methods, self.created['methods'])
+        self.assertEqual(methods, self.created.methods)
 
     def assert_retrieve_routes_associated_to_service(self, result):
         routes_list = list(result)
         self.assertEqual(0, len(routes_list))
 
-        self.created = self.route_admin_client._perform_create(
-            self.service.id, paths=['/test-path'])
+        self.created = self.route_admin_client.create(
+            service=self.service.id, paths=['/test-path'])
         routes_list = list(self.route_admin_client.list_associated_to_service(self.service.id))
         self.assertEqual(1, len(routes_list))

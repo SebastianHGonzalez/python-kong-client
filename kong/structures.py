@@ -38,7 +38,7 @@ class ObjectData:
         if parameter not in self.allowed_parameters:
             raise SchemaViolation('invalid parameter: %s' % parameter)
 
-        if not isinstance(value, (str, int, bool, list, dict)):
+        if not isinstance(value, (str, int, bool, list, dict, None.__class__)):
             raise ValueError('invalid value: %s value must be str, int, '
                              'bool, _perform_list or dict' % parameter)
 
