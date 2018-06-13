@@ -72,8 +72,8 @@ class KongAbstractClient(RestClient):
         data_dict = self._perform_create(**kwargs)
         return self._to_object_data(data_dict)
 
-    def delete(self, pk_or_id):
-        self._perform_delete(pk_or_id)
+    def delete(self, pk_or_id, **kwargs):
+        self._perform_delete(pk_or_id, **kwargs)
 
     def list(self, size=10, **kwargs):
         data_dict = self._perform_list(size, **kwargs)
@@ -320,8 +320,8 @@ class PluginAdminClient(KongAbstractClient):
         return endpoint
 
     # pylint: disable=arguments-differ
-    def _perform_create(self, plugin_name, consumer_id=None, api_name_or_id=None, config=None):
-        data = {'name': plugin_name}
+    def _perform_create(self, name, consumer_id=None, api_name_or_id=None, config=None):
+        data = {'name': name}
 
         if consumer_id is not None:
             data['consumer_id'] = consumer_id
