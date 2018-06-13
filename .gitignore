@@ -4,7 +4,7 @@ __pycache__
 node_modules
 package-lock.json
 .pytest_cache
-
+.nvmrc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
