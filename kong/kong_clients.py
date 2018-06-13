@@ -68,14 +68,14 @@ class KongAbstractClient(RestClient):
     def _to_list_object_data(self, list_data_dict):
         return map(self._to_object_data, list_data_dict)
 
-    def create(self, name, **kwargs):
-        data_dict = self._perform_create(name, **kwargs)
+    def create(self, **kwargs):
+        data_dict = self._perform_create(**kwargs)
         return self._to_object_data(data_dict)
 
     def delete(self, pk_or_id):
         self._perform_delete(pk_or_id)
 
-    def list(self, size, **kwargs):
+    def list(self, size=10, **kwargs):
         data_dict = self._perform_list(size, **kwargs)
         return self._to_list_object_data(data_dict)
 
@@ -199,8 +199,8 @@ class KongAbstractClient(RestClient):
     def _validate_update_params(self, params):
         return self._validate_params(params, self._allowed_update_params)
 
-    def _perform_create(self, name, **kwargs):
-        return self._send_create(dict(**kwargs, name=name))
+    def _perform_create(self, **kwargs):
+        return self._send_create(kwargs)
 
     def _perform_retrieve(self, pk_or_id):
         if not isinstance(pk_or_id, str):
@@ -382,17 +382,17 @@ class ApiAdminClient(KongAbstractClient):
         return 'apis/'
 
     # pylint: disable=arguments-differ
-    def _perform_create(self, api_name_or_data, upstream_url=None, **kwargs):
+    def _perform_create(self, name=None, api_data=None, upstream_url=None, **kwargs):
 
-        if isinstance(api_name_or_data, ApiData):
-            api_data = api_name_or_data
+        if isinstance(name, str):
+            api_data = ApiData(name=name, upstream_url=upstream_url, **kwargs)
+
+        elif isinstance(api_data, ApiData):
+            pass
 
         elif upstream_url is None:
             raise ValueError("must provide a upstream_url")
 
-        elif isinstance(api_name_or_data, str):
-            api_name = api_name_or_data
-            api_data = ApiData(name=api_name, upstream_url=upstream_url, **kwargs)
         else:
             raise ValueError("must provide ApiData instance or name to _perform_create a api")
 
