@@ -68,7 +68,7 @@ class ApiDataTests(unittest.TestCase):
 
     def test_create_api_data_w_invalid_value_raises_exception(self):
         # Setup
-        invalid_value = None
+        invalid_value = self.faker
 
         # Verify
         self.assertRaisesRegex(ValueError,

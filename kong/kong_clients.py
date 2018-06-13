@@ -68,14 +68,14 @@ class KongAbstractClient(RestClient):
     def _to_list_object_data(self, list_data_dict):
         return map(self._to_object_data, list_data_dict)
 
-    def create(self, name, **kwargs):
-        data_dict = self._perform_create(name, **kwargs)
+    def create(self, **kwargs):
+        data_dict = self._perform_create(**kwargs)
         return self._to_object_data(data_dict)
 
-    def delete(self, pk_or_id):
-        self._perform_delete(pk_or_id)
+    def delete(self, pk_or_id, **kwargs):
+        self._perform_delete(pk_or_id, **kwargs)
 
-    def list(self, size, **kwargs):
+    def list(self, size=10, **kwargs):
         data_dict = self._perform_list(size, **kwargs)
         return self._to_list_object_data(data_dict)
 
@@ -88,7 +88,7 @@ class KongAbstractClient(RestClient):
         return self._to_object_data(data_dict)
 
     @property
-    def _endpoint(self):
+    def endpoint(self):
         return self.url + self._path
 
     @abstractmethod
@@ -105,7 +105,7 @@ class KongAbstractClient(RestClient):
 
     def _send_create(self, data, endpoint=None):
 
-        endpoint = endpoint or self._endpoint
+        endpoint = endpoint or self.endpoint
 
         response = self.session.post(endpoint, json=data)
 
@@ -118,7 +118,7 @@ class KongAbstractClient(RestClient):
         return response.json()
 
     def _send_delete(self, name_or_id, endpoint=None):
-        url = (endpoint or self._endpoint) + name_or_id
+        url = (endpoint or self.endpoint) + name_or_id
         response = self.session.delete(url)
 
         if response.status_code == 404:
@@ -128,7 +128,7 @@ class KongAbstractClient(RestClient):
             raise Exception(response.content)
 
     def _send_update(self, pk_or_id, data, endpoint=None):
-        url = (endpoint or self._endpoint) + pk_or_id
+        url = (endpoint or self.endpoint) + pk_or_id
 
         response = self.session.patch(url, json=data)
 
@@ -146,7 +146,7 @@ class KongAbstractClient(RestClient):
     def _send_list(self, size=10, offset=None, **kwargs):
         data = {**{'offset': offset, 'size': size}, **kwargs}
 
-        response = self.session.get(self._endpoint,
+        response = self.session.get(self.endpoint,
                                     data=data)
 
         if response.status_code != 200:
@@ -172,7 +172,7 @@ class KongAbstractClient(RestClient):
         return offset, elements
 
     def _send_retrieve(self, name_or_id, endpoint=None):
-        endpoint = endpoint or self._endpoint
+        endpoint = endpoint or self.endpoint
         url = endpoint + name_or_id
         response = self.session.get(url)
 
@@ -199,8 +199,8 @@ class KongAbstractClient(RestClient):
     def _validate_update_params(self, params):
         return self._validate_params(params, self._allowed_update_params)
 
-    def _perform_create(self, name, **kwargs):
-        return self._send_create(dict(**kwargs, name=name))
+    def _perform_create(self, **kwargs):
+        return self._send_create(kwargs)
 
     def _perform_retrieve(self, pk_or_id):
         if not isinstance(pk_or_id, str):
@@ -320,8 +320,8 @@ class PluginAdminClient(KongAbstractClient):
         return endpoint
 
     # pylint: disable=arguments-differ
-    def _perform_create(self, plugin_name, consumer_id=None, api_name_or_id=None, config=None):
-        data = {'name': plugin_name}
+    def _perform_create(self, name, consumer_id=None, api_name_or_id=None, config=None):
+        data = {'name': name}
 
         if consumer_id is not None:
             data['consumer_id'] = consumer_id
@@ -382,17 +382,17 @@ class ApiAdminClient(KongAbstractClient):
         return 'apis/'
 
     # pylint: disable=arguments-differ
-    def _perform_create(self, api_name_or_data, upstream_url=None, **kwargs):
+    def _perform_create(self, name=None, api_data=None, upstream_url=None, **kwargs):
 
-        if isinstance(api_name_or_data, ApiData):
-            api_data = api_name_or_data
+        if isinstance(name, str):
+            api_data = ApiData(name=name, upstream_url=upstream_url, **kwargs)
+
+        elif isinstance(api_data, ApiData):
+            pass
 
         elif upstream_url is None:
             raise ValueError("must provide a upstream_url")
 
-        elif isinstance(api_name_or_data, str):
-            api_name = api_name_or_data
-            api_data = ApiData(name=api_name, upstream_url=upstream_url, **kwargs)
         else:
             raise ValueError("must provide ApiData instance or name to _perform_create a api")
 
@@ -419,8 +419,8 @@ class ServiceAdminClient(KongAbstractClient):
     def _path(self):
         return 'services/'
 
-    def _perform_create(self, name, **kwargs):
-        service = ServiceData(name=name, **kwargs)
+    def _perform_create(self, **kwargs):
+        service = ServiceData(**kwargs)
         return self._send_create(service.as_dict())
 
 
@@ -495,7 +495,7 @@ class UpstreamAdminClient(KongAbstractClient):
         return 'upstreams/'
 
     def health_status(self, name_or_id):
-        url = self._endpoint + name_or_id + '/health/'
+        url = self.endpoint + name_or_id + '/health/'
         response = self.session.get(url)
 
         if response.status_code == 404:
@@ -525,10 +525,10 @@ class TargetAdminClient(KongAbstractClient):
         return 'upstreams/%s/targets/'
 
     @property
-    def _endpoint(self):
+    def endpoint(self):
         return self.__endpoint
 
-    @_endpoint.setter
+    @endpoint.setter
     def endpoint(self, val):
         self.__endpoint = val  # pylint: disable=attribute-defined-outside-init
 
@@ -554,7 +554,7 @@ class TargetAdminClient(KongAbstractClient):
     def list_all(self, upstream_name_or_id, size=10, **kwargs):
         self.configure_endpoint(upstream_name_or_id)
 
-        self._endpoint += 'all/'
+        self.endpoint += 'all/'
 
         list_data_dict = super(TargetAdminClient, self)._perform_list(size, **kwargs)
         return self._to_list_object_data(list_data_dict)

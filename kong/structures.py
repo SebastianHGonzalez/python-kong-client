@@ -8,12 +8,9 @@ from kong.exceptions import SchemaViolation
 
 class ObjectData:
 
-    def __init__(self, name, **kwargs):
+    def __init__(self, **kwargs):
 
-        validated = self.validate_schema(name=name, **kwargs)
-
-        self.validate_parameter('name', name)
-        self.name = name
+        validated = self.validate_schema(**kwargs)
 
         for k, val in validated.items():
             self.validate_parameter(k, val)
@@ -41,7 +38,7 @@ class ObjectData:
         if parameter not in self.allowed_parameters:
             raise SchemaViolation('invalid parameter: %s' % parameter)
 
-        if not isinstance(value, (str, int, bool, list, dict)):
+        if not isinstance(value, (str, int, bool, list, dict, None.__class__)):
             raise ValueError('invalid value: %s value must be str, int, '
                              'bool, _perform_list or dict' % parameter)
 
@@ -159,7 +156,7 @@ class ConsumerData(ObjectData):
 
     @property
     def allowed_parameters(self):
-        return "id", "username", "custom_id"
+        return "id", "username", "custom_id", "created_at"
 
     def validate_semi_optional_parameters(self, **kwargs):
         if ("username" not in kwargs) and ("custom_id" not in kwargs):
