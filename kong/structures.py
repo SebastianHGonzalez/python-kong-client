@@ -150,7 +150,7 @@ class PluginData(ObjectData):
     def allowed_parameters(self):
         return "id", "service_id", "consumer_id",\
                "name", "config", "enabled",\
-               "created_at"
+               "created_at", "api_id", "route_id"
 
 
 class ConsumerData(ObjectData):
