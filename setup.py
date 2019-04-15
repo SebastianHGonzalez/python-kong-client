@@ -3,7 +3,6 @@ import os
 from os.path import dirname
 from os.path import join
 
-from pip.req import parse_requirements
 
 from setuptools import setup
 
@@ -20,7 +19,7 @@ def read(*names, **kwargs):
 
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
-requirements = [str(ir.req) for ir in parse_requirements(os.path.join(BASE_DIR, './requirements/base.txt'), session=False)]
+requirements = []
 # requirements_test = [str(ir.req) for ir in parse_requirements('./requirements-test.txt', session=False)]
 
 setup(
