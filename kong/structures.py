@@ -89,6 +89,7 @@ class ApiData(ObjectData):
 
 
 class ServiceData(ObjectData):
+    pk_identifier = 'name'
 
     def validate_semi_optional_parameters(self, **kwargs):
         pass
@@ -128,7 +129,7 @@ class ServiceData(ObjectData):
         return 'name', 'protocol', 'host', 'port', 'path',\
                'retries', 'connect_timeout', 'send_timeout',\
                'read_timeout', 'url', 'id', \
-               'created_at', 'updated_at', 'write_timeout'
+               'created_at', 'updated_at', 'write_timeout', 'tags'
 
     @property
     def url(self):
@@ -156,7 +157,7 @@ class ConsumerData(ObjectData):
 
     @property
     def allowed_parameters(self):
-        return "id", "username", "custom_id", "created_at"
+        return "id", "username", "custom_id", "created_at", "tags"
 
     def validate_semi_optional_parameters(self, **kwargs):
         if ("username" not in kwargs) and ("custom_id" not in kwargs):
@@ -166,6 +167,7 @@ class ConsumerData(ObjectData):
 
 
 class RouteData(ObjectData):
+    pk_identifier = 'name'
 
     def validate_semi_optional_parameters(self, **kwargs):
         if not ('hosts' in kwargs
@@ -178,10 +180,11 @@ class RouteData(ObjectData):
 
     @property
     def allowed_parameters(self):
-        return "id", "created_at", "updated_at", \
+        return "name", "id", "created_at", "updated_at", \
                "protocols", "methods", "hosts", \
                "paths", "regex_priority", "strip_path", \
-               "preserve_host", "service"
+               "preserve_host", "service", "snis", "sources", \
+                "destinations", "tags"
 
 
 class TargetData(ObjectData):

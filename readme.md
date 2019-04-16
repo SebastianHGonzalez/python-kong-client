@@ -12,6 +12,7 @@ Supported Information Routes
 - node_information
 
 Supported operations for Services, Routes, Apis, Consumers, Plugins and Upstreams
+- update_or_create
 - create
 - delete
 - retrieve
@@ -33,7 +34,6 @@ Additional supported operations for Targets
 - set_healthy
 
 Not supported
-- update_or_create
 - count (dropped in 0.16/kong 0.13.0)
 - Certificates object routes (yet)
 - SNI object routes (yet)
