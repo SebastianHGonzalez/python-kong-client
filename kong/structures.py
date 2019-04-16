@@ -89,7 +89,7 @@ class ApiData(ObjectData):
 
 
 class ServiceData(ObjectData):
-    pk_identifier = 'name'
+    pk_identifier = 'id'
 
     def validate_semi_optional_parameters(self, **kwargs):
         pass
@@ -167,7 +167,7 @@ class ConsumerData(ObjectData):
 
 
 class RouteData(ObjectData):
-    pk_identifier = 'name'
+    pk_identifier = 'id'
 
     def validate_semi_optional_parameters(self, **kwargs):
         if not ('hosts' in kwargs
