@@ -73,7 +73,7 @@ class KongAbstractClient(RestClient):
         return map(self._to_object_data, list_data_dict)
 
     def update_or_create(self, **kwargs):
-        pk_or_id = kwargs.pop(self._object_data_class.pk_identifier, kwargs.get("name"))
+        pk_or_id = kwargs.pop(self._object_data_class.pk_identifier, None) or kwargs.get("name")
 
         try:
             data_dict = self._perform_retrieve(pk_or_id)
