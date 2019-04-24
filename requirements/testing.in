@@ -1,0 +1,4 @@
+flake8 # This covers pycodestyle
+pylint
+pytest
+Faker

@@ -3,8 +3,7 @@ import os
 from os.path import dirname
 from os.path import join
 
-from pip.req import parse_requirements
-
+from pip._internal.req import parse_requirements
 from setuptools import setup
 
 __version__ = '0.1.7'
@@ -19,9 +18,12 @@ def read(*names, **kwargs):
     ).read()
 
 
-# parse_requirements() returns generator of pip.req.InstallRequirement objects
-requirements = [str(ir.req) for ir in parse_requirements(os.path.join(BASE_DIR, './requirements/base.txt'), session=False)]
-# requirements_test = [str(ir.req) for ir in parse_requirements('./requirements-test.txt', session=False)]
+with open(os.path.join(BASE_DIR, 'requirements', 'base.txt')) as f:
+    requirements = f.read().splitlines()
+
+with open(os.path.join(BASE_DIR, 'requirements', 'testing.txt')) as f:
+    requirements_test = f.read().splitlines()
+
 
 setup(
     name='python-kong-client',
@@ -43,5 +45,7 @@ setup(
     ],
     keywords=[],
     install_requires=requirements,
-    extras_require={},
+    extras_require={
+        "tests": requirements_test
+    },
 )

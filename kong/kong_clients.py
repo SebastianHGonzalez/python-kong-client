@@ -1,9 +1,13 @@
+import logging
 from abc import abstractmethod
+
 from urllib3.util.url import Url, parse_url
 from requests import session
 from kong.structures import ApiData, ServiceData, ConsumerData, \
     PluginData, RouteData, TargetData, UpstreamData
-from kong.exceptions import SchemaViolation
+from kong.exceptions import SchemaViolation, ObjectNotFound
+
+logger = logging.getLogger(__name__)
 
 
 class RestClient:  # pylint:disable=too-few-public-methods
@@ -67,6 +71,19 @@ class KongAbstractClient(RestClient):
 
     def _to_list_object_data(self, list_data_dict):
         return map(self._to_object_data, list_data_dict)
+
+    def update_or_create(self, **kwargs):
+        pk_or_id = kwargs.pop(self._object_data_class.pk_identifier, None) or kwargs.get("name")
+
+        try:
+            data_dict = self._perform_retrieve(pk_or_id)
+            pk_or_id = data_dict.get(self._object_data_class.pk_identifier)
+        except ObjectNotFound:
+            return self.create(**kwargs), True
+
+        self.update(pk_or_id, **kwargs)
+
+        return self._to_object_data(data_dict), False
 
     def create(self, **kwargs):
         data_dict = self._perform_create(**kwargs)
@@ -177,6 +194,9 @@ class KongAbstractClient(RestClient):
         response = self.session.get(url)
 
         if response.status_code == 404:
+            if response.json().get('message') == "Not found":
+                raise ObjectNotFound(response.content)
+
             raise NameError(response.content)
 
         if response.status_code != 200:
@@ -188,7 +208,7 @@ class KongAbstractClient(RestClient):
         validated_params = {}
         for k, val in query_params.items():
             if k in allowed_params:
-                validated_params[k] = self._stringify_if_list(val)
+                validated_params[k] = val  # self._stringify_if_list(val)
             else:
                 raise KeyError('invalid query parameter: %s' % k)
         return validated_params
@@ -409,11 +429,11 @@ class ServiceAdminClient(KongAbstractClient):
     def _allowed_update_params(self):
         return 'name', 'protocol', 'host', 'port', 'path', \
                'retries', 'connect_timeout', 'send_timeout', \
-               'read_timeout', 'url'
+               'read_timeout', 'url', "tags"
 
     @property
     def _allowed_query_params(self):
-        return []
+        return ["tags"]
 
     @property
     def _path(self):
@@ -432,9 +452,9 @@ class RouteAdminClient(KongAbstractClient):
 
     @property
     def _allowed_update_params(self):
-        return 'protocols', 'methods', 'hosts',\
+        return 'name', 'protocols', 'methods', 'hosts',\
                'paths', 'strip_path', 'preserve_host',\
-               'service',
+               'service', 'tags'
 
     @property
     def _allowed_query_params(self):
@@ -443,6 +463,13 @@ class RouteAdminClient(KongAbstractClient):
     @property
     def _path(self):
         return 'routes/'
+
+    #  pylint: disable=arguments-differ
+    def _perform_update(self, pk_or_id, **kwargs):
+        if 'service' in kwargs.keys():
+            kwargs['service'] = {"id": self.get_service_id(kwargs['service'])}
+
+        return super(RouteAdminClient, self)._perform_update(pk_or_id, **kwargs)
 
     #  pylint: disable=arguments-differ
     def _perform_create(self, service, **kwargs):
